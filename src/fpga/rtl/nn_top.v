@@ -23,26 +23,28 @@
 module nn_top(
         input clk,
         input rst,
+        input [31:0] config_in,
+        input config_valid,
+        input config_type,//0-weight, 1-bias
+        input [1:0] config_layer_num,
+        input [4:0] config_neuron_num,
         input [15:0] x1_in,
         input  x1_valid,
-        output [9:0]out_valid,
-        output [159:0] out
+        output out_valid,
+        output [3:0] out
     );
     
-    wire [15:0] w1_in;
-    wire  w1_valid;
-    wire [15:0] w2_in;
-    wire  w2_valid;
-    wire [15:0] w3_in;
-    wire  w3_valid;
     wire [29:0] o1_valid;
     wire [479:0] x1_out;
     wire [29:0] o2_valid;
     wire [479:0] x2_out;
     
-    Layer1 #(.NN(30)) l1 (
-            .w_in({30{w1_in}}),
-            .w_valid({30{w1_valid}}),
+    Layer #(.NN(30),.numWeight(784),.layerNum(1)) l1 (
+            .config_in(config_in),
+            .config_valid(config_valid),
+            .config_type(config_type),
+            .config_layer_num(config_layer_num),
+            .config_neuron_num(config_neuron_num),
             .x_valid({30{x1_valid}}),
             .x_in({30{x1_in}}),
             .clk(clk),
@@ -128,13 +130,16 @@ module nn_top(
  
 
     
-    Layer2 #(.NN2(30)) l2 (
-            .w_in({30{w2_in}}),
-            .w_valid({30{w2_valid}}),
-            .x_valid({30{firstValid}}),
-            .x_in({30{firstOutput}}),
+    Layer #(.NN(30),.numWeight(30),.layerNum(2)) l2 (
             .clk(clk),
             .rst(rst),
+            .config_in(config_in),
+            .config_valid(config_valid),
+            .config_type(config_type),
+            .config_layer_num(config_layer_num),
+            .config_neuron_num(config_neuron_num),
+            .x_valid({30{firstValid}}),
+            .x_in({30{firstOutput}}),
             .o_valid(o2_valid),
             .x_out(x2_out) 
     );
@@ -214,19 +219,30 @@ module nn_top(
     end
     end
 
+    wire [159:0] l3out;
+    wire l3dataValid;
     
-    Layer3 #(.NN3(10)) l3 (
-            .w_in({10{w3_in}}),
-            .w_valid({10{w3_valid}}),
-            .x_valid({10{secondValid}}),
-            .x_in({10{secondOutput}}),
+    Layer #(.NN(10),.numWeight(30),.layerNum(3)) l3 (
             .clk(clk),
             .rst(rst),
-            .o_valid(out_valid),
-            .x_out(out) 
+            .config_in(config_in),
+            .config_valid(config_valid),
+            .config_type(config_type),
+            .config_layer_num(config_layer_num),
+            .config_neuron_num(config_neuron_num),
+            .x_valid({10{secondValid}}),
+            .x_in({10{secondOutput}}),
+            .o_valid(l3dataValid),
+            .x_out(l3out) 
     ); 
     
-    
+    maxFinder mFind(
+        .i_clk(clk),
+        .i_data(l3out),
+        .i_valid(l3dataValid),
+        .o_data(out),
+        .o_data_valid(out_valid)
+    );
     
     
     

@@ -37,12 +37,12 @@ module Weight_Memory #(parameter numWeight = 3, neuronNo=5,layerNo=1,FileName="l
     
    // synthesis translate_off
     
-    function [7:0] to_ascii;
+    /*function [7:0] to_ascii;
         input integer a;
         begin
           to_ascii = a+48;
         end
-      endfunction
+      endfunction*/
     
   /*  function [23:0] to_ascii_integer;
         input integer a;
@@ -68,7 +68,7 @@ module Weight_Memory #(parameter numWeight = 3, neuronNo=5,layerNo=1,FileName="l
     endfunction*/
     
     
-    initial
+    /*initial
     begin
      neuronNo_int = neuronNo;
      fileName[0] = "t";
@@ -90,7 +90,7 @@ module Weight_Memory #(parameter numWeight = 3, neuronNo=5,layerNo=1,FileName="l
     fileName[8] = "6";
     fileName[9] = "1";
     $readmemb(fileName, mem);
-    end
+    end*/
     
    // synthesis translate_on
     

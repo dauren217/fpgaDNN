@@ -21,9 +21,9 @@
 
 
 module Sig_ROM(
-    input clk,
-    input [9:0] x,
-    output [15:0] out
+    input           clk,
+    input   [9:0]   x,
+    output  [15:0]  out
     );
     
     reg [15:0] mem [1023:0];
@@ -39,7 +39,7 @@ module Sig_ROM(
         
     initial
     begin
-   mem[ 0 ] = 16'b0000000000001010;
+    mem[ 0 ] = 16'b0000000000001010;
     mem[ 1 ] = 16'b0000000000001011;
     mem[ 2 ] = 16'b0000000000001011;
     mem[ 3 ] = 16'b0000000000001011;
