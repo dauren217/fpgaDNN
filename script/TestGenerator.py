@@ -2,7 +2,7 @@ import cPickle
 import gzip
 import numpy as np
 
-a = 10					#specify the number of a test data file you want to test
+a = 1					#specify the number of a test data file you want to test
 l = 16					#specify the number of bits in test data
 
 
@@ -38,7 +38,7 @@ def DtoB(num, k):
 
 
 def load_data():
-	f = gzip.open('C:/users/ASER/Anaconda3/mnist.pkl.gz', 'rb')
+	f = gzip.open('C:/users/ASER/Anaconda3/mnist.pkl.gz', 'rb') 		#change this location to the resiprositry where MNIST dataset sits
 	training_data, validation_data, test_data = cPickle.load(f)
 	f.close()
 	return (training_data, validation_data, test_data)
@@ -53,5 +53,4 @@ for i in range(0,x):
 	myData = DtoB(test_inputs[a][0][i],d)
 	f.write(myData+'\n')
 f.close()
-p
-print('The output should be: '+te_d[a][0])
+print('The output should be: '+str(te_d[1][a]))
