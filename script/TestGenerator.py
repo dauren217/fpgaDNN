@@ -2,7 +2,7 @@ import cPickle
 import gzip
 import numpy as np
 
-a = 1					#specify the number of a test data file you want to test
+a = 6					#specify the number of a test data file you want to test
 l = 16					#specify the number of bits in test data
 
 
