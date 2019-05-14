@@ -25,9 +25,10 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3)(
     input           rst,
     input [15:0]    myinput,
     input           myinputValid,
-    input [31:0]    config_in,
-    input           config_valid,
-    input           config_type,//0-weight, 1-bias
+    input           weightValid,
+    input           biasValid,
+    input [31:0]    weightValue,
+    input [31:0]    biasValue,
     input [1:0]     config_layer_num,
     input [4:0]     config_neuron_num,
     output[15:0]    out,
@@ -47,11 +48,13 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3)(
     reg         mult_valid;
     reg         mux_valid;
     reg         sigValid; 
-    reg         outvalid; 
-    wire        sign;
+    reg         sign;
     wire [31:0] muxOut;
     wire [32:0] comboAdd;
     wire [32:0] BiasAdd;
+    reg  [15:0] myinputd;
+    reg muxValid_d;
+    reg muxValid_f;
     
    //Loading weight values into the momory
     always @(posedge clk)
@@ -61,9 +64,9 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3)(
             w_addr <= {10{1'b1}};
             wen <=0;
         end
-        else if(config_valid & !config_type & (config_layer_num==layerNo) & (config_neuron_num==neuronNo))
+        else if(weightValid & (config_layer_num==layerNo) & (config_neuron_num==neuronNo))
         begin
-            w_in <= config_in[15:0];
+            w_in <= weightValue;
             w_addr <= w_addr + 1;
             wen <= 1;
         end
@@ -75,14 +78,13 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3)(
     
     assign comboAdd = muxOut+ sum;
     assign BiasAdd = bias + sum;
-    assign sign = w_out[15];
     assign ren = myinputValid;
     
     always @(posedge clk)
     begin
-        if(config_valid & config_type & (config_layer_num==layerNo) & (config_neuron_num==neuronNo))
+        if(biasValid & (config_layer_num==layerNo) & (config_neuron_num==neuronNo))
         begin
-            bias <= config_in;
+            bias <= biasValue;
         end
     end
     
@@ -97,7 +99,8 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3)(
     
     always @(posedge clk)
     begin
-        mul <= myinput * w_out[14:0];
+        mul  <= myinputd * w_out[14:0];
+        sign <= w_out[15];
     end
     
     
@@ -105,7 +108,7 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3)(
     begin
         if(rst|outvalid)
             sum <= 0;
-        else if((r_addr == numWeight) & mux_valid)
+        else if((r_addr == numWeight) & muxValid_f)
         begin
             if(!bias[31] &!sum[31] & BiasAdd[31])
                 sum <= 32'h7FFFFFFF;
@@ -129,11 +132,14 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3)(
     
     always @(posedge clk)
     begin
+        myinputd <= myinput;
         weight_valid <= myinputValid;
         mult_valid <= weight_valid;
         mux_valid <= mult_valid;
-        sigValid <= ((r_addr == numWeight) & mux_valid) ? 1'b1 : 1'b0;
+        sigValid <= ((r_addr == numWeight) & muxValid_f) ? 1'b1 : 1'b0;
         outvalid <= sigValid;
+        muxValid_d <= mux_valid;
+        muxValid_f <= !mux_valid & muxValid_d;
     end
     
     

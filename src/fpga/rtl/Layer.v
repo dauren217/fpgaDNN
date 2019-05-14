@@ -24,9 +24,10 @@ module Layer #(parameter NN = 30,numWeight=784,layerNum=1) //Number of neurons i
     (
     input           clk,
     input           rst,
-    input [31:0]    config_in,
-    input           config_valid,
-    input           config_type,//0-weight, 1-bias
+    input           weightValid,
+    input           biasValid,
+    input [31:0]    weightValue,
+    input [31:0]    biasValue,
     input [1:0]     config_layer_num,
     input [4:0]     config_neuron_num,
     input [NN-1:0]  x_valid,
@@ -40,9 +41,10 @@ module Layer #(parameter NN = 30,numWeight=784,layerNum=1) //Number of neurons i
         for (k=0; k<=NN-1; k=k+1)
         begin: neurons 
             neuron #(.numWeight(numWeight),.layerNo(layerNum),.neuronNo(k))nk( .myinput(x_in[k*16+15:16*k]), 
-                       .config_in(config_in), 
-                       .config_valid(config_valid),
-                       .config_type(config_type),
+                       .weightValid(weightValid),
+                       .biasValid(biasValid),
+                       .weightValue(weightValue),
+                       .biasValue(biasValue),
                        .config_layer_num(config_layer_num),
                        .config_neuron_num(config_neuron_num),
                        .myinputValid(x_valid[k]), .clk(clk), .rst(rst),

@@ -31,27 +31,68 @@ module top_sim(
     reg [15:0] in;
     reg [31:0] configData;
     reg in_valid;
-    reg config_valid;
-    wire [3:0] out;
-    wire out_valid;
     reg [15:0] in_mem [783:0];
     reg [7:0] fileName[11:0];
     reg [4:0] neuronNum;
     reg [1:0] layerNum;
     reg configType;
+    reg s_axi_awvalid;
+    reg [31:0] s_axi_awaddr;
+    wire s_axi_awready;
+    reg [31:0] s_axi_wdata;
+    reg s_axi_wvalid;
+    wire s_axi_wready;
+    wire s_axi_bvalid;
+    reg s_axi_bready;
+    wire intr;
+    reg [31:0] axiRdData;
+    reg [31:0] s_axi_araddr;
+    wire [31:0] s_axi_rdata;
+    reg s_axi_arvalid;
+    wire s_axi_arready;
+    wire s_axi_rvalid;
+    reg s_axi_rready;
     
     nn_top dut(
-    .rst(reset),
-    .clk(clock),
-    .config_in(configData),
-    .config_valid(config_valid),
-    .config_type(configType),
-    .config_layer_num(layerNum),
-    .config_neuron_num(neuronNum),
-    .x1_in(in),
-    .x1_valid(in_valid),
-    .out_valid(out_valid),
-    .out(out));
+    .s_axi_aclk(clock),
+    .s_axi_aresetn(reset),
+    .s_axi_awaddr(s_axi_awaddr),
+    .s_axi_awprot(0),
+    .s_axi_awvalid(s_axi_awvalid),
+    .s_axi_awready(s_axi_awready),
+    .s_axi_wdata(s_axi_wdata),
+    .s_axi_wstrb(4'hF),
+    .s_axi_wvalid(s_axi_wvalid),
+    .s_axi_wready(s_axi_wready),
+    .s_axi_bresp(),
+    .s_axi_bvalid(s_axi_bvalid),
+    .s_axi_bready(s_axi_bready),
+    .s_axi_araddr(s_axi_araddr),
+    .s_axi_arprot(0),
+    .s_axi_arvalid(s_axi_arvalid),
+    .s_axi_arready(s_axi_arready),
+    .s_axi_rdata(s_axi_rdata),
+    .s_axi_rresp(),
+    .s_axi_rvalid(s_axi_rvalid),
+    .s_axi_rready(s_axi_rready),
+    .axis_in_data(in),
+    .axis_in_data_valid(in_valid),
+    .axis_in_data_ready(),
+    .intr(intr)
+    );
+    
+            
+    initial
+    begin
+        clock = 1'b0;
+        s_axi_awvalid = 1'b0;
+        s_axi_bready = 1'b0;
+        s_axi_wvalid = 1'b0;
+        s_axi_arvalid = 1'b0;
+    end
+        
+    always
+        #2 clock = ~clock;
     
     function [7:0] to_ascii;
       input integer a;
@@ -60,15 +101,54 @@ module top_sim(
       end
     endfunction
     
+    always @(posedge clock)
+    begin
+        s_axi_bready <= s_axi_bvalid;
+        s_axi_rready <= s_axi_rvalid;
+    end
+    
+    task writeAxi();
+    input [31:0] address;
+    input [31:0] data;
+    begin
+        @(posedge clock);
+        s_axi_awvalid <= 1'b1;
+        s_axi_awaddr <= address;
+        s_axi_wdata <= data;
+        s_axi_wvalid <= 1'b1;
+        wait(s_axi_wready);
+        @(posedge clock);
+        s_axi_awvalid <= 1'b0;
+        s_axi_wvalid <= 1'b0;
+        @(posedge clock);
+    end
+    endtask
+    
+    task readAxi();
+    input [31:0] address;
+    begin
+        @(posedge clock);
+        s_axi_arvalid <= 1'b1;
+        s_axi_araddr <= address;
+        wait(s_axi_arready);
+        @(posedge clock);
+        s_axi_arvalid <= 1'b0;
+        wait(s_axi_rvalid);
+        @(posedge clock);
+        axiRdData <= s_axi_rdata;
+        @(posedge clock);
+    end
+    endtask
+    
     task configWeights();
     integer i,j,k,t;
     integer neuronNo_int;
     reg [15:0] config_mem [783:0];
     begin
         @(posedge clock);
-        config_valid <= 0;
         for(k=1;k<=`numLayers;k=k+1)
         begin
+            writeAxi(12,k);//Write layer number
             for(j=0;j<`numNeurons;j=j+1)
             begin
                 neuronNo_int = j;
@@ -90,15 +170,9 @@ module top_sim(
                 fileName[8] = "6";
                 fileName[9] = "1";
                 $readmemb(fileName, config_mem);
+                writeAxi(16,j);//Write neuron number
                 for (t=0; t <784; t=t+1) begin
-                    @(posedge clock);
-                    configData <= {15'd0,config_mem[t]};
-                    config_valid <= 1;
-                    configType <= 0;
-                    neuronNum <= j;
-                    layerNum <= k;
-                    @(posedge clock);
-                    config_valid <= 0;
+                    writeAxi(0,{15'd0,config_mem[t]});
                 end 
             end
         end
@@ -111,9 +185,9 @@ module top_sim(
     reg [31:0] bias[0:0];
     begin
         @(posedge clock);
-        config_valid <= 0;
         for(k=1;k<=`numLayers;k=k+1)
         begin
+            writeAxi(12,k);//Write layer number
             for(j=0;j<`numNeurons;j=j+1)
             begin
                 neuronNo_int = j;
@@ -137,14 +211,8 @@ module top_sim(
                 fileName[10] = "1";
                 fileName[11] = "b";
                 $readmemb(fileName, bias);
-                @(posedge clock);
-                configData <= bias[0];
-                config_valid <= 1;
-                configType <= 1;
-                neuronNum <= j;
-                layerNum <= k;
-                @(posedge clock);
-                config_valid <= 0;
+                writeAxi(16,j);//Write neuron number
+                writeAxi(4,{15'd0,bias[0]});
             end
         end
     end
@@ -168,39 +236,32 @@ module top_sim(
         in_valid <= 0;
     end
     endtask
-    
-    
-    always
-        #1.7 clock = ~clock;
-
-        
-    initial
-    begin
-        clock = 1'b0;
-    end
    
     integer i,layerNo=1;
     integer start;
    
     initial
     begin
-        reset = 1;
-        #100;
         reset = 0;
+        in_valid = 0;
+        #100;
+        reset = 1;
         #100
         start = $time;
         configWeights();
         configBias();
         $display("Configuration completed",,,,$time-start,,"ns");
         start = $time;
-        sendData("validation_data_0.txt");
-        @(posedge out_valid);
-        $display("Total execution time",,,,$time-start,,"ns");
-        $display("Detected number is %d",out);
-        start = $time;
         sendData("validation_data_2.txt");
-        @(posedge out_valid);
-        $display("Detected number is %d",out);
+        @(posedge intr);
+        readAxi(8);
+        $display("Detected number is %0x",axiRdData);
+        $display("Total execution time",,,,$time-start,,"ns");
+        start = $time;
+        sendData("validation_data_0.txt");
+        @(posedge intr);
+        readAxi(8);
+        $display("Detected number is %0x",axiRdData);
         $display("Total execution time",,,,$time-start,,"ns");
         $stop;
     end

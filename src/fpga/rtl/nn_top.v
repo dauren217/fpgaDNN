@@ -20,232 +20,240 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module nn_top(
-        input clk,
-        input rst,
-        input [31:0] config_in,
-        input config_valid,
-        input config_type,//0-weight, 1-bias
-        input [1:0] config_layer_num,
-        input [4:0] config_neuron_num,
-        input [15:0] x1_in,
-        input  x1_valid,
-        output out_valid,
-        output [3:0] out
-    );
-    
-    wire [29:0] o1_valid;
-    wire [479:0] x1_out;
-    wire [29:0] o2_valid;
-    wire [479:0] x2_out;
-    
-    Layer #(.NN(30),.numWeight(784),.layerNum(1)) l1 (
-            .config_in(config_in),
-            .config_valid(config_valid),
-            .config_type(config_type),
-            .config_layer_num(config_layer_num),
-            .config_neuron_num(config_neuron_num),
-            .x_valid({30{x1_valid}}),
-            .x_in({30{x1_in}}),
-            .clk(clk),
-            .rst(rst),
-            .o_valid(o1_valid),
-            .x_out(x1_out) 
-    );
-    
-    reg [479:0] holdData;
-    reg [15:0] firstOutput;
-    reg firstValid;
-    
-    
-        localparam IDLE = 'd0,
-               Sent = 'd1,
-               Wait = 'd2,
-               DELAYS = 'd3;
-               
-    reg [1:0] state;
-    reg [9:0] count;
-    reg [2:0] delay;
-    
-    always @(posedge clk)
+module nn_top #(
+    parameter integer C_S_AXI_DATA_WIDTH    = 32,
+    parameter integer C_S_AXI_ADDR_WIDTH    = 5
+)
+(
+    //Clock and Reset
+    input                                   s_axi_aclk,
+    input                                   s_axi_aresetn,
+    //AXI Stream interface
+    input [15:0]                            axis_in_data,
+    input                                   axis_in_data_valid,
+    output                                  axis_in_data_ready,
+    //AXI Lite Interface
+    input wire [C_S_AXI_ADDR_WIDTH-1 : 0]   s_axi_awaddr,
+    input wire [2 : 0]                      s_axi_awprot,
+    input wire                              s_axi_awvalid,
+    output wire                             s_axi_awready,
+    input wire [C_S_AXI_DATA_WIDTH-1 : 0]   s_axi_wdata,
+    input wire [(C_S_AXI_DATA_WIDTH/8)-1 : 0] s_axi_wstrb,
+    input wire                              s_axi_wvalid,
+    output wire                             s_axi_wready,
+    output wire [1 : 0]                     s_axi_bresp,
+    output wire                             s_axi_bvalid,
+    input wire                              s_axi_bready,
+    input wire [C_S_AXI_ADDR_WIDTH-1 : 0]   s_axi_araddr,
+    input wire [2 : 0]                      s_axi_arprot,
+    input wire                              s_axi_arvalid,
+    output wire                             s_axi_arready,
+    output wire [C_S_AXI_DATA_WIDTH-1 : 0]  s_axi_rdata,
+    output wire [1 : 0]                     s_axi_rresp,
+    output wire                             s_axi_rvalid,
+    input wire                              s_axi_rready,
+    //Interrupt interface
+    output wire                             intr
+);
+
+
+wire [1:0]  config_layer_num;
+wire [4:0]  config_neuron_num;
+wire [29:0] o1_valid;
+wire [479:0] x1_out;
+wire [29:0] o2_valid;
+wire [479:0] x2_out;
+wire [31:0] weightValue;
+wire [31:0] biasValue;
+wire [31:0] out;
+wire out_valid;
+
+assign intr = out_valid;
+assign axis_in_data_ready = 1'b1;
+
+
+axi_lite_wrapper # ( 
+    .C_S_AXI_DATA_WIDTH(C_S_AXI_DATA_WIDTH),
+    .C_S_AXI_ADDR_WIDTH(C_S_AXI_ADDR_WIDTH)
+) alw (
+    .S_AXI_ACLK(s_axi_aclk),
+    .S_AXI_ARESETN(s_axi_aresetn),
+    .S_AXI_AWADDR(s_axi_awaddr),
+    .S_AXI_AWPROT(s_axi_awprot),
+    .S_AXI_AWVALID(s_axi_awvalid),
+    .S_AXI_AWREADY(s_axi_awready),
+    .S_AXI_WDATA(s_axi_wdata),
+    .S_AXI_WSTRB(s_axi_wstrb),
+    .S_AXI_WVALID(s_axi_wvalid),
+    .S_AXI_WREADY(s_axi_wready),
+    .S_AXI_BRESP(s_axi_bresp),
+    .S_AXI_BVALID(s_axi_bvalid),
+    .S_AXI_BREADY(s_axi_bready),
+    .S_AXI_ARADDR(s_axi_araddr),
+    .S_AXI_ARPROT(s_axi_arprot),
+    .S_AXI_ARVALID(s_axi_arvalid),
+    .S_AXI_ARREADY(s_axi_arready),
+    .S_AXI_RDATA(s_axi_rdata),
+    .S_AXI_RRESP(s_axi_rresp),
+    .S_AXI_RVALID(s_axi_rvalid),
+    .S_AXI_RREADY(s_axi_rready),
+    .layerNumber(config_layer_num),
+    .neuronNumber(config_neuron_num),
+    .weightValue(weightValue),
+    .weightValid(weightValid),
+    .biasValid(biasValid),
+    .biasValue(biasValue),
+    .nnOut_valid(out_valid),
+    .nnOut(out)
+);
+
+Layer #(.NN(30),.numWeight(784),.layerNum(1)) l1 (
+    .clk(s_axi_aclk),
+    .rst(!s_axi_aresetn),
+    .weightValid(weightValid),
+    .biasValid(biasValid),
+    .weightValue(weightValue),
+    .biasValue(biasValue),
+    .config_layer_num(config_layer_num),
+    .config_neuron_num(config_neuron_num),
+    .x_valid({30{axis_in_data_valid}}),
+    .x_in({30{axis_in_data}}),
+    .o_valid(o1_valid),
+    .x_out(x1_out) 
+);
+
+reg [479:0] holdData;
+reg [15:0] firstOutput;
+reg firstValid;
+
+
+localparam IDLE = 'd0,
+       SEND = 'd1;
+       
+reg       state;
+reg [9:0] count;
+
+always @(posedge s_axi_aclk)
+begin
+    if(!s_axi_aresetn)
     begin
-        if(rst)
-        begin
-            state <= IDLE;
-            count <= 0;
-            firstValid <=0;
-            delay <= 0;          
-        end
-        else
-        begin
-            case(state)
-                IDLE: begin
-                    count <= 0;
-                    firstValid <=0;
-                    delay <=0;
-                    if (o1_valid == {30{1'b1}})
-                    begin
-                        holdData <= x1_out;
-                        state <= Sent;
-                    end
-                    else 
-                    begin
-                        holdData <= holdData;
-                        state <= IDLE;
-                    end
+        state <= IDLE;
+        count <= 0;
+        firstValid <=0;
+    end
+    else
+    begin
+        case(state)
+            IDLE: begin
+                count <= 0;
+                firstValid <=0;
+                if (o1_valid == {30{1'b1}})
+                begin
+                    holdData <= x1_out;
+                    state <= SEND;
                 end
-                Sent: begin
-                    firstOutput <= holdData[15:0];
-                    count <= count +1;
-                    firstValid <= 1;
-                    state <= Wait;
-                    delay <=0;
-                end
-                Wait: begin
+            end
+            SEND: begin
+                firstOutput <= holdData[15:0];
+                holdData <= holdData>>16;
+                count <= count +1;
+                firstValid <= 1;
+                if (count == 30)
+                begin
+                    state <= IDLE;
                     firstValid <= 0;
-                    holdData <= holdData>>16;
-                    delay <= delay +1;
-                    if (count == 30)
-                    begin
-                        state <= IDLE;
-                    end
-                    else
-                    begin
-                        state <= DELAYS;
-                    end
-                    end
-               DELAYS: begin
-                    delay <= delay +1;
-                    if (delay > 4)
-                    begin
-                        state <= Sent;
-                    end
-                    else 
-                        state <= DELAYS;
-                    end
-           endcase
+                end
+            end
+       endcase
     end
-    end
-    
- 
+end
 
-    
-    Layer #(.NN(30),.numWeight(30),.layerNum(2)) l2 (
-            .clk(clk),
-            .rst(rst),
-            .config_in(config_in),
-            .config_valid(config_valid),
-            .config_type(config_type),
-            .config_layer_num(config_layer_num),
-            .config_neuron_num(config_neuron_num),
-            .x_valid({30{firstValid}}),
-            .x_in({30{firstOutput}}),
-            .o_valid(o2_valid),
-            .x_out(x2_out) 
-    );
-    
-    
-    
-    reg [479:0] holdDataTwo;
-    reg [15:0] secondOutput;
-    reg secondValid;
-    
-    
-        localparam IDLEtwo = 'd0,
-               SentTwo = 'd1,
-               WaitTwo = 'd2,
-               DELAYStwo = 'd3;
-               
-    reg [1:0] stateTwo;
-    reg [9:0] countTwo;
-    reg [2:0] delayTwo;
-    
-    always @(posedge clk)
+
+
+
+Layer #(.NN(30),.numWeight(30),.layerNum(2)) l2 (
+    .clk(s_axi_aclk),
+    .rst(!s_axi_aresetn),
+    .weightValid(weightValid),
+    .biasValid(biasValid),
+    .weightValue(weightValue),
+    .biasValue(biasValue),
+    .config_layer_num(config_layer_num),
+    .config_neuron_num(config_neuron_num),
+    .x_valid({30{firstValid}}),
+    .x_in({30{firstOutput}}),
+    .o_valid(o2_valid),
+    .x_out(x2_out) 
+);
+
+
+
+reg [479:0] holdDataTwo;
+reg [15:0] secondOutput;
+reg secondValid;
+reg stateTwo;
+reg [9:0] countTwo;
+
+always @(posedge s_axi_aclk)
+begin
+    if(!s_axi_aresetn)
     begin
-        if(rst)
-        begin
-            stateTwo <= IDLEtwo;
-            countTwo <= 0;
-            secondValid <=0;          
-        end
-        else
-        begin
-            case(stateTwo)
-                IDLEtwo: begin
-                    countTwo <= 0;
-                    secondValid <=0;
-                    delayTwo <=0;
-                    if (o2_valid == {30{1'b1}})
-                    begin
-                        holdDataTwo <= x2_out;
-                        stateTwo <= SentTwo;
-                    end
-                    else 
-                    begin
-                        holdDataTwo <= holdDataTwo;
-                        stateTwo <= IDLEtwo;
-                    end
+        stateTwo <= IDLE;
+        countTwo <= 0;
+        secondValid <=0;
+    end
+    else
+    begin
+        case(stateTwo)
+            IDLE: begin
+                countTwo <= 0;
+                secondValid <=0;
+                if (o2_valid == {30{1'b1}})
+                begin
+                    holdDataTwo <= x2_out;
+                    stateTwo <= SEND;
                 end
-                SentTwo: begin
-                    secondOutput <= holdDataTwo[15:0];
-                    countTwo <= countTwo +1;
-                    secondValid <= 1;
-                    stateTwo <= WaitTwo;
-                    delayTwo <= 0;
-                end
-                WaitTwo: begin
+            end
+            SEND: begin
+                secondOutput <= holdDataTwo[15:0];
+                holdDataTwo <= holdDataTwo>>16;
+                countTwo <= countTwo +1;
+                secondValid <= 1;
+                if (countTwo == 30)
+                begin
+                    stateTwo <= IDLE;
                     secondValid <= 0;
-                    holdDataTwo <= holdDataTwo>>16;
-                    delayTwo <= delayTwo+1;
-                    if (countTwo == 30)
-                    begin
-                        stateTwo <= IDLEtwo;
-                    end
-                    else
-                    begin
-                        stateTwo <= DELAYStwo;
-                    end
-                    end
-               DELAYStwo: begin
-                         delayTwo <= delayTwo +1;
-                         if (delayTwo > 4)
-                         begin
-                             stateTwo <= Sent;
-                         end
-                         else 
-                             stateTwo <= DELAYStwo;
-                    end
-           endcase
+                end
+            end
+       endcase
     end
-    end
+end
 
-    wire [159:0] l3out;
-    wire l3dataValid;
-    
-    Layer #(.NN(10),.numWeight(30),.layerNum(3)) l3 (
-            .clk(clk),
-            .rst(rst),
-            .config_in(config_in),
-            .config_valid(config_valid),
-            .config_type(config_type),
-            .config_layer_num(config_layer_num),
-            .config_neuron_num(config_neuron_num),
-            .x_valid({10{secondValid}}),
-            .x_in({10{secondOutput}}),
-            .o_valid(l3dataValid),
-            .x_out(l3out) 
-    ); 
-    
-    maxFinder mFind(
-        .i_clk(clk),
-        .i_data(l3out),
-        .i_valid(l3dataValid),
-        .o_data(out),
-        .o_data_valid(out_valid)
-    );
-    
-    
-    
-    
-    
+wire [159:0] l3out;
+wire l3dataValid;
+
+Layer #(.NN(10),.numWeight(30),.layerNum(3)) l3 (
+    .clk(s_axi_aclk),
+    .rst(!s_axi_aresetn),
+    .weightValid(weightValid),
+    .biasValid(biasValid),
+    .weightValue(weightValue),
+    .biasValue(biasValue),
+    .config_layer_num(config_layer_num),
+    .config_neuron_num(config_neuron_num),
+    .x_valid({10{secondValid}}),
+    .x_in({10{secondOutput}}),
+    .o_valid(l3dataValid),
+    .x_out(l3out) 
+); 
+
+maxFinder #(.numInput(10),.inputWidth(16)) 
+mFind(
+    .i_clk(s_axi_aclk),
+    .i_data(l3out),
+    .i_valid(l3dataValid),
+    .o_data(out),
+    .o_data_valid(out_valid)
+);
+
 endmodule
