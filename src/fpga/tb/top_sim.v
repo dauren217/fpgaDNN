@@ -33,9 +33,6 @@ module top_sim(
     reg in_valid;
     reg [15:0] in_mem [783:0];
     reg [7:0] fileName[11:0];
-    reg [4:0] neuronNum;
-    reg [1:0] layerNum;
-    reg configType;
     reg s_axi_awvalid;
     reg [31:0] s_axi_awaddr;
     wire s_axi_awready;
