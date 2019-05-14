@@ -20,7 +20,6 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 `define numLayers 3
-`define numNeurons 30
 
 module top_sim(
 
@@ -29,7 +28,6 @@ module top_sim(
     reg reset;
     reg clock;
     reg [15:0] in;
-    reg [31:0] configData;
     reg in_valid;
     reg [15:0] in_mem [783:0];
     reg [7:0] fileName[11:0];
@@ -50,7 +48,18 @@ module top_sim(
     wire s_axi_rvalid;
     reg s_axi_rready;
     
-    nn_top dut(
+    wire [7:0] numNeurons[3:1];
+    wire [9:0] numWeights[3:1];
+    
+    assign numNeurons[1] = 30;
+    assign numNeurons[2] = 30;
+    assign numNeurons[3] = 10;
+    
+    assign numWeights[1] = 784;
+    assign numWeights[2] = 30;
+    assign numWeights[3] = 30;
+       
+    nn_autoGen_top dut(
     .s_axi_aclk(clock),
     .s_axi_aresetn(reset),
     .s_axi_awaddr(s_axi_awaddr),
@@ -146,7 +155,7 @@ module top_sim(
         for(k=1;k<=`numLayers;k=k+1)
         begin
             writeAxi(12,k);//Write layer number
-            for(j=0;j<`numNeurons;j=j+1)
+            for(j=0;j<numNeurons[k];j=j+1)
             begin
                 neuronNo_int = j;
                 fileName[0] = "t";
@@ -168,7 +177,7 @@ module top_sim(
                 fileName[9] = "1";
                 $readmemb(fileName, config_mem);
                 writeAxi(16,j);//Write neuron number
-                for (t=0; t <784; t=t+1) begin
+                for (t=0; t<numWeights[k]; t=t+1) begin
                     writeAxi(0,{15'd0,config_mem[t]});
                 end 
             end
@@ -185,7 +194,7 @@ module top_sim(
         for(k=1;k<=`numLayers;k=k+1)
         begin
             writeAxi(12,k);//Write layer number
-            for(j=0;j<`numNeurons;j=j+1)
+            for(j=0;j<numNeurons[k];j=j+1)
             begin
                 neuronNo_int = j;
                 fileName[0] = "t";
@@ -260,6 +269,14 @@ module top_sim(
         readAxi(8);
         $display("Detected number is %0x",axiRdData);
         $display("Total execution time",,,,$time-start,,"ns");
+        $display("Neuron outputs");
+        i=0;
+        repeat(10)
+        begin
+            readAxi(20);
+            $display("Output of Neuron %d: %0x",i,axiRdData);
+            i=i+1;
+        end
         $stop;
     end
 

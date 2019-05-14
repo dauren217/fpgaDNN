@@ -20,24 +20,26 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Weight_Memory #(parameter numWeight = 3, neuronNo=5,layerNo=1,FileName="layer0Neuron000.txt") 
+module Weight_Memory #(parameter numWeight = 3, neuronNo=5,layerNo=1,addressWidth=10,dataWidth=16) 
     ( 
     input clk,
     input wen,
     input ren,
-    input [9:0] wadd,
-    input [9:0] radd,
-    input [15:0] win,
-    output reg [15:0] wout);
+    input [addressWidth-1:0] wadd,
+    input [addressWidth-1:0] radd,
+    input [dataWidth-1:0] win,
+    output reg [dataWidth-1:0] wout);
     
-    reg [15:0] mem [numWeight-1:0];
-    reg [7:0] fileName[10:0];
-    integer i;
-    integer neuronNo_int;
+    reg [dataWidth-1:0] mem [numWeight-1:0];
+
     
    // synthesis translate_off
+   
+   /*reg [7:0] fileName[10:0];
+   integer i;
+   integer neuronNo_int;
     
-    /*function [7:0] to_ascii;
+    function [7:0] to_ascii;
         input integer a;
         begin
           to_ascii = a+48;

@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Layer #(parameter NN = 30,numWeight=784,layerNum=1) //Number of neurons in the layer
+module Layer #(parameter NN = 30,numWeight=784,dataWidth=16,layerNum=1) //Number of neurons in the layer
     (
     input           clk,
     input           rst,
@@ -28,27 +28,32 @@ module Layer #(parameter NN = 30,numWeight=784,layerNum=1) //Number of neurons i
     input           biasValid,
     input [31:0]    weightValue,
     input [31:0]    biasValue,
-    input [1:0]     config_layer_num,
-    input [4:0]     config_neuron_num,
-    input [NN-1:0]  x_valid,
-    input [NN*16-1:0] x_in,
+    input [31:0]    config_layer_num,
+    input [31:0]    config_neuron_num,
+    input           x_valid,
+    input [dataWidth-1:0]    x_in,
     output [NN-1:0]     o_valid,
-    output [NN*16-1:0]  x_out
+    output [NN*dataWidth-1:0]  x_out
     );
     
     genvar k;
     generate
         for (k=0; k<=NN-1; k=k+1)
         begin: neurons 
-            neuron #(.numWeight(numWeight),.layerNo(layerNum),.neuronNo(k))nk( .myinput(x_in[k*16+15:16*k]), 
+            neuron #(.numWeight(numWeight),.layerNo(layerNum),.neuronNo(k),.dataWidth(dataWidth))nk( 
+                       .clk(clk), 
+                       .rst(rst),
+                       .myinput(x_in), 
                        .weightValid(weightValid),
                        .biasValid(biasValid),
                        .weightValue(weightValue),
                        .biasValue(biasValue),
                        .config_layer_num(config_layer_num),
                        .config_neuron_num(config_neuron_num),
-                       .myinputValid(x_valid[k]), .clk(clk), .rst(rst),
-                       .out(x_out[k*16+15:16*k]), .outvalid(o_valid[k]));        
+                       .myinputValid(x_valid),
+                       .out(x_out[k*dataWidth+:dataWidth]), 
+                       .outvalid(o_valid[k])
+                       );        
         end
     endgenerate
     

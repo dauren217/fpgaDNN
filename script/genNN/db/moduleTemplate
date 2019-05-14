@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 `include "include.v"
 
-module nn_top #(
+module nn_autoGen_top #(
     parameter integer C_S_AXI_DATA_WIDTH    = 32,
     parameter integer C_S_AXI_ADDR_WIDTH    = 5
 )
@@ -59,16 +59,14 @@ module nn_top #(
 
 wire [31:0]  config_layer_num;
 wire [31:0]  config_neuron_num;
-wire [`numNeuronLayer1-1:0] o1_valid;
-wire [`numNeuronLayer1*`dataWidth-1:0] x1_out;
-wire [`numNeuronLayer2-1:0] o2_valid;
-wire [`numNeuronLayer2*`dataWidth-1:0] x2_out;
 wire [31:0] weightValue;
 wire [31:0] biasValue;
 wire [31:0] out;
 wire out_valid;
 wire weightValid;
 wire biasValid;
+wire axi_rd_en;
+wire [31:0] axi_rd_data;
 
 assign intr = out_valid;
 assign axis_in_data_ready = 1'b1;
@@ -106,6 +104,8 @@ axi_lite_wrapper # (
     .biasValid(biasValid),
     .biasValue(biasValue),
     .nnOut_valid(out_valid),
-    .nnOut(out)
+    .nnOut(out),
+    .axi_rd_en(axi_rd_en),
+    .axi_rd_data(axi_rd_data)
 );
 

@@ -87,7 +87,9 @@
         output          [31:0]  weightValue,
         output          [31:0]  biasValue,
         input           [31:0]  nnOut,
-        input                   nnOut_valid
+        input                   nnOut_valid,
+        output reg              axi_rd_en,
+        input           [31:0]  axi_rd_data
 	);
 
 	// AXI4LITE signals
@@ -393,11 +395,22 @@
 	        3'h2   : reg_data_out <= outputReg;
 	        3'h3   : reg_data_out <= layerReg;
 	        3'h4   : reg_data_out <= neuronReg;
-	        3'h5   : reg_data_out <= slv_reg5;
+	        3'h5   : reg_data_out <= axi_rd_data;
 	        3'h6   : reg_data_out <= slv_reg6;
 	        3'h7   : reg_data_out <= slv_reg7;
 	        default : reg_data_out <= 0;
 	      endcase
+	end
+	
+	
+	always @(posedge S_AXI_ACLK)
+	begin
+	   if(!axi_rd_en & axi_rvalid & S_AXI_RREADY & axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]==3'h5)
+	   begin
+	       axi_rd_en <= 1'b1;
+	   end
+	   else
+	       axi_rd_en <= 1'b0;
 	end
 
 	// Output register or memory read data

@@ -20,25 +20,27 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3)(
+module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
     input           clk,
     input           rst,
-    input [15:0]    myinput,
+    input [dataWidth-1:0]    myinput,
     input           myinputValid,
     input           weightValid,
     input           biasValid,
     input [31:0]    weightValue,
     input [31:0]    biasValue,
-    input [1:0]     config_layer_num,
-    input [4:0]     config_neuron_num,
-    output[15:0]    out,
+    input [31:0]    config_layer_num,
+    input [31:0]    config_neuron_num,
+    output[dataWidth-1:0]    out,
     output reg      outvalid   
     );
     
+    parameter addressWidth = $clog2(numWeight);
+    
     reg         wen;
     wire        ren;
-    reg [9:0]   w_addr;
-    reg [9:0]   r_addr;
+    reg [addressWidth-1:0] w_addr;
+    reg [addressWidth:0]   r_addr;//read address has to reach until numWeight hence width is 1 bit more
     reg [15:0]  w_in;
     wire [15:0] w_out;
     reg [30:0]  mul; 
@@ -61,7 +63,7 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3)(
     begin
         if(rst)
         begin
-            w_addr <= {10{1'b1}};
+            w_addr <= {addressWidth{1'b1}};
             wen <=0;
         end
         else if(weightValid & (config_layer_num==layerNo) & (config_neuron_num==neuronNo))
@@ -144,7 +146,7 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3)(
     
     
     //Instantiation of Memory for Weights
-    Weight_Memory #(.numWeight(numWeight),.neuronNo(neuronNo),.layerNo(layerNo)) WM(
+    Weight_Memory #(.numWeight(numWeight),.neuronNo(neuronNo),.layerNo(layerNo),.addressWidth(addressWidth),.dataWidth(dataWidth)) WM(
         .clk(clk),
         .wen(wen),
         .ren(ren),

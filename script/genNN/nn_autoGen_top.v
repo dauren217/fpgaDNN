@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 `include "include.v"
 
-module nn_top #(
+module nn_autoGen_top #(
     parameter integer C_S_AXI_DATA_WIDTH    = 32,
     parameter integer C_S_AXI_ADDR_WIDTH    = 5
 )
@@ -59,16 +59,14 @@ module nn_top #(
 
 wire [31:0]  config_layer_num;
 wire [31:0]  config_neuron_num;
-wire [`numNeuronLayer1-1:0] o1_valid;
-wire [`numNeuronLayer1*`dataWidth-1:0] x1_out;
-wire [`numNeuronLayer2-1:0] o2_valid;
-wire [`numNeuronLayer2*`dataWidth-1:0] x2_out;
 wire [31:0] weightValue;
 wire [31:0] biasValue;
 wire [31:0] out;
 wire out_valid;
 wire weightValid;
 wire biasValid;
+wire axi_rd_en;
+wire [31:0] axi_rd_data;
 
 assign intr = out_valid;
 assign axis_in_data_ready = 1'b1;
@@ -106,150 +104,166 @@ axi_lite_wrapper # (
     .biasValid(biasValid),
     .biasValue(biasValue),
     .nnOut_valid(out_valid),
-    .nnOut(out)
+    .nnOut(out),
+    .axi_rd_en(axi_rd_en),
+    .axi_rd_data(axi_rd_data)
 );
-
-Layer #(.NN(`numNeuronLayer1),.numWeight(`numNueuronLayer0),.layerNum(1)) l1 (
-    .clk(s_axi_aclk),
-    .rst(!s_axi_aresetn),
-    .weightValid(weightValid),
-    .biasValid(biasValid),
-    .weightValue(weightValue),
-    .biasValue(biasValue),
-    .config_layer_num(config_layer_num),
-    .config_neuron_num(config_neuron_num),
-    .x_valid({`numNeuronLayer1{axis_in_data_valid}}),
-    .x_in({`numNeuronLayer1{axis_in_data}}),
-    .o_valid(o1_valid),
-    .x_out(x1_out) 
-);
-
-reg [`numNeuronLayer1*`dataWidth-1:0] holdData;
-reg [`dataWidth-1:0] out_data_1;
-reg data_out_valid_1;
-
 
 localparam IDLE = 'd0,
            SEND = 'd1;
-       
-reg       state;
-integer   count;
+wire [`numNeuronLayer1-1:0] o1_valid;
+wire [`numNeuronLayer1*`dataWidth-1:0] x1_out;
+reg [`numNeuronLayer1*`dataWidth-1:0] holdData_1;
+reg [`dataWidth-1:0] out_data_1;
+reg data_out_valid_1;
 
+Layer #(.NN(`numNeuronLayer1),.numWeight(`numNeuronLayer0),.layerNum(1)) l1(
+	.clk(s_axi_aclk),
+	.rst(!s_axi_aresetn),
+	.weightValid(weightValid),
+	.biasValid(biasValid),
+	.weightValue(weightValue),
+	.biasValue(biasValue),
+	.config_layer_num(config_layer_num),
+	.config_neuron_num(config_neuron_num),
+	.x_valid(axis_in_data_valid),
+	.x_in(axis_in_data),
+	.o_valid(o1_valid),
+	.x_out(x1_out)
+);
+
+//State machine for data pipelining
+
+reg       state_1;
+integer   count_1;
 always @(posedge s_axi_aclk)
 begin
     if(!s_axi_aresetn)
     begin
-        state <= IDLE;
-        count <= 0;
+        state_1 <= IDLE;
+        count_1 <= 0;
         data_out_valid_1 <=0;
     end
     else
     begin
-        case(state)
+        case(state_1)
             IDLE: begin
-                count <= 0;
+                count_1 <= 0;
                 data_out_valid_1 <=0;
                 if (o1_valid[0] == 1'b1)
                 begin
-                    holdData <= x1_out;
-                    state <= SEND;
+                    holdData_1 <= x1_out;
+                    state_1 <= SEND;
                 end
             end
             SEND: begin
-                out_data_1 <= holdData[`dataWidth-1:0];
-                holdData <= holdData>>`dataWidth;
-                count <= count +1;
+                out_data_1 <= holdData_1[`dataWidth-1:0];
+                holdData_1 <= holdData_1>>`dataWidth;
+                count_1 <= count_1 +1;
                 data_out_valid_1 <= 1;
-                if (count == `numNeuronLayer1)
+                if (count_1 == `numNeuronLayer1)
                 begin
-                    state <= IDLE;
+                    state_1 <= IDLE;
                     data_out_valid_1 <= 0;
                 end
             end
-       endcase
+        endcase
     end
 end
 
-
-
-
-Layer #(.NN(`numNeuronLayer2),.numWeight(`numNeuronLayer1),.layerNum(2)) l2 (
-    .clk(s_axi_aclk),
-    .rst(!s_axi_aresetn),
-    .weightValid(weightValid),
-    .biasValid(biasValid),
-    .weightValue(weightValue),
-    .biasValue(biasValue),
-    .config_layer_num(config_layer_num),
-    .config_neuron_num(config_neuron_num),
-    .x_valid({`numNeuronLayer2{data_out_valid_1}}),
-    .x_in({`numNeuronLayer2{out_data_1}}),
-    .o_valid(o2_valid),
-    .x_out(x2_out) 
-);
-
-
-
-reg [`numNeuronLayer2*`dataWidth-1:0] holdDataTwo;
+wire [`numNeuronLayer2-1:0] o2_valid;
+wire [`numNeuronLayer2*`dataWidth-1:0] x2_out;
+reg [`numNeuronLayer2*`dataWidth-1:0] holdData_2;
 reg [`dataWidth-1:0] out_data_2;
 reg data_out_valid_2;
-reg stateTwo;
-integer countTwo;
 
+Layer #(.NN(`numNeuronLayer2),.numWeight(`numNeuronLayer1),.layerNum(2)) l2(
+	.clk(s_axi_aclk),
+	.rst(!s_axi_aresetn),
+	.weightValid(weightValid),
+	.biasValid(biasValid),
+	.weightValue(weightValue),
+	.biasValue(biasValue),
+	.config_layer_num(config_layer_num),
+	.config_neuron_num(config_neuron_num),
+	.x_valid(data_out_valid_1),
+	.x_in(out_data_1),
+	.o_valid(o2_valid),
+	.x_out(x2_out)
+);
+
+//State machine for data pipelining
+
+reg       state_2;
+integer   count_2;
 always @(posedge s_axi_aclk)
 begin
     if(!s_axi_aresetn)
     begin
-        stateTwo <= IDLE;
-        countTwo <= 0;
+        state_2 <= IDLE;
+        count_2 <= 0;
         data_out_valid_2 <=0;
     end
     else
     begin
-        case(stateTwo)
+        case(state_2)
             IDLE: begin
-                countTwo <= 0;
+                count_2 <= 0;
                 data_out_valid_2 <=0;
                 if (o2_valid[0] == 1'b1)
                 begin
-                    holdDataTwo <= x2_out;
-                    stateTwo <= SEND;
+                    holdData_2 <= x2_out;
+                    state_2 <= SEND;
                 end
             end
             SEND: begin
-                out_data_2 <= holdDataTwo[`dataWidth-1:0];
-                holdDataTwo <= holdDataTwo>>`dataWidth;
-                countTwo <= countTwo +1;
+                out_data_2 <= holdData_2[`dataWidth-1:0];
+                holdData_2 <= holdData_2>>`dataWidth;
+                count_2 <= count_2 +1;
                 data_out_valid_2 <= 1;
-                if (countTwo == `numNeuronLayer2)
+                if (count_2 == `numNeuronLayer2)
                 begin
-                    stateTwo <= IDLE;
+                    state_2 <= IDLE;
                     data_out_valid_2 <= 0;
                 end
             end
-       endcase
+        endcase
     end
 end
 
+wire [`numNeuronLayer3-1:0] o3_valid;
 wire [`numNeuronLayer3*`dataWidth-1:0] x3_out;
-wire o3_valid;
+reg [`numNeuronLayer3*`dataWidth-1:0] holdData_3;
 
-Layer #(.NN(`numNeuronLayer3),.numWeight(`numNeuronLayer2),.layerNum(3)) l3 (
-    .clk(s_axi_aclk),
-    .rst(!s_axi_aresetn),
-    .weightValid(weightValid),
-    .biasValid(biasValid),
-    .weightValue(weightValue),
-    .biasValue(biasValue),
-    .config_layer_num(config_layer_num),
-    .config_neuron_num(config_neuron_num),
-    .x_valid({`numNeuronLayer3{data_out_valid_2}}),
-    .x_in({`numNeuronLayer3{out_data_2}}),
-    .o_valid(o3_valid),
-    .x_out(x3_out) 
-); 
+Layer #(.NN(`numNeuronLayer3),.numWeight(`numNeuronLayer2),.layerNum(3)) l3(
+	.clk(s_axi_aclk),
+	.rst(!s_axi_aresetn),
+	.weightValid(weightValid),
+	.biasValid(biasValid),
+	.weightValue(weightValue),
+	.biasValue(biasValue),
+	.config_layer_num(config_layer_num),
+	.config_neuron_num(config_neuron_num),
+	.x_valid(data_out_valid_2),
+	.x_in(out_data_2),
+	.o_valid(o3_valid),
+	.x_out(x3_out)
+);
 
-maxFinder #(.numInput(`numNeuronLayer3),.inputWidth(`dataWidth)) 
+assign axi_rd_data = holdData_3[`dataWidth-1:0];
+
+always @(posedge s_axi_aclk)
+begin
+    if (o3_valid[0] == 1'b1)
+        holdData_3 <= x3_out;
+    else if(axi_rd_en)
+    begin
+        holdData_3 <= holdData_3>>`dataWidth;
+    end
+end
+
+
+maxFinder #(.numInput(`numNeuronLayer3),.inputWidth(`dataWidth))
 mFind(
     .i_clk(s_axi_aclk),
     .i_data(x3_out),
@@ -257,5 +271,4 @@ mFind(
     .o_data(out),
     .o_data_valid(out_valid)
 );
-
 endmodule
