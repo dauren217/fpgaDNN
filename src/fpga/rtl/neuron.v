@@ -41,20 +41,20 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
     wire        ren;
     reg [addressWidth-1:0] w_addr;
     reg [addressWidth:0]   r_addr;//read address has to reach until numWeight hence width is 1 bit more
-    reg [15:0]  w_in;
-    wire [15:0] w_out;
-    reg [30:0]  mul; 
-    reg [31:0]  sum;
+    reg [dataWidth-1:0]  w_in;
+    wire [dataWidth-1:0] w_out;
+    reg [2*dataWidth-2:0]  mul; 
+    reg [2*dataWidth-1:0]  sum;
     reg [31:0]  bias;
     reg         weight_valid;
     reg         mult_valid;
     reg         mux_valid;
     reg         sigValid; 
     reg         sign;
-    wire [31:0] muxOut;
-    wire [32:0] comboAdd;
-    wire [32:0] BiasAdd;
-    reg  [15:0] myinputd;
+    wire [2*dataWidth-1:0] muxOut;
+    wire [2*dataWidth:0] comboAdd;
+    wire [2*dataWidth:0] BiasAdd;
+    reg  [dataWidth-1:0] myinputd;
     reg muxValid_d;
     reg muxValid_f;
     
@@ -101,8 +101,8 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
     
     always @(posedge clk)
     begin
-        mul  <= myinputd * w_out[14:0];
-        sign <= w_out[15];
+        mul  <= myinputd * w_out[dataWidth-2:0]; //Weight is in sign-magnitude format
+        sign <= w_out[dataWidth-1];
     end
     
     
@@ -112,23 +112,29 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
             sum <= 0;
         else if((r_addr == numWeight) & muxValid_f)
         begin
-            if(!bias[31] &!sum[31] & BiasAdd[31])
-                sum <= 32'h7FFFFFFF;
-            else if(bias[31] & sum[31] &  !BiasAdd[31])
-                sum <= 32'h80000000;
+            if(!bias[31] &!sum[2*dataWidth-1] & BiasAdd[31]) //If bias and sum are positive and after adding bias to sum, if sign bit becomes 1, saturate
+            begin
+                sum[2*dataWidth-1] <= 1'b0;
+                sum[2*dataWidth-2:0] <= {2*dataWidth-1{1'b1}};
+            end
+            else if(bias[31] & sum[2*dataWidth-1] &  !BiasAdd[31]) //If bias and sum are negative and after addition if sign bit is 0, saturate
+            begin
+                sum[2*dataWidth-1] <= 1'b1;
+                sum[2*dataWidth-2:0] <= {2*dataWidth-1{1'b0}};
+            end
             else
-                sum <= BiasAdd[31:0]; 
+                sum <= BiasAdd; 
         end
         else if(mux_valid)
         begin
-            if(!muxOut[31] & !sum[31] & comboAdd[31])
+            if(!muxOut[31] & !sum[2*dataWidth-1] & comboAdd[31])
             begin
                 sum <= 32'h7FFFFFFF;
             end
-            else if(muxOut[31] & sum[31] & !comboAdd[31])
+            else if(muxOut[31] & sum[2*dataWidth-1] & !comboAdd[31])
                 sum <= 32'h80000000;
             else
-                sum <= comboAdd[31:0]; 
+                sum <= comboAdd; 
         end
     end
     
@@ -160,7 +166,7 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
     twosComplementer t1(
         .clk(clk),
         .sign(sign),
-        .i_multOut(mul[30:0]),
+        .i_multOut(mul[2*dataWidth-2:0]),
         .muxOut(muxOut)
     );
     
