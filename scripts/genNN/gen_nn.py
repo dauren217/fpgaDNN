@@ -2,13 +2,15 @@ import sys
 
 arglen = len(sys.argv)
 
-f = open("include.v","w")
+sourceFilePath = "../../src/fpga/rtl/"
+
+f = open(sourceFilePath+"include.v","w")
 
 i=1
 while 1:
 	if i >= arglen:
 		break
-	elif sys.argv[i] == 'numLayers':
+	elif sys.argv[i] == 'numLayers': #Number of layers in the NN including the input layer
 		try:
 			numLayers = int(sys.argv[i+1])
 			f.write("`define numLayers "+str(numLayers)+'\n')
@@ -16,7 +18,7 @@ while 1:
 		except:
 			print("Error in number of layers")
 			break
-	elif sys.argv[i] == 'numNeurons':
+	elif sys.argv[i] == 'numNeurons': #Number of neurons in each layer including the input layer
 		try:
 			neuronList = sys.argv[i+1].split(',')
 			i += 2
@@ -37,7 +39,7 @@ while 1:
 		print("Invalid argument ",sys.argv[i])
 		break
 f.close()
-f = open("nn_autoGen_top.v","w")
+f = open(sourceFilePath+"nn_autoGen_top.v","w")
 
 g = open("db/moduleTemplate")
 data = g.read()

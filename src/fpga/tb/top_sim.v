@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-`define numLayers 3
+`define numLayers 4
 
 module top_sim(
 
@@ -48,16 +48,18 @@ module top_sim(
     wire s_axi_rvalid;
     reg s_axi_rready;
     
-    wire [7:0] numNeurons[3:1];
-    wire [9:0] numWeights[3:1];
+    wire [31:0] numNeurons[31:1];
+    wire [31:0] numWeights[31:1];
     
     assign numNeurons[1] = 30;
     assign numNeurons[2] = 30;
     assign numNeurons[3] = 10;
+    assign numNeurons[4] = 10;
     
     assign numWeights[1] = 784;
     assign numWeights[2] = 30;
     assign numWeights[3] = 30;
+     assign numWeights[4] = 10;
        
     nn_autoGen_top dut(
     .s_axi_aclk(clock),
