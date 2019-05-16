@@ -7,12 +7,12 @@ sourceFilePath = "../../src/fpga/rtl/"
 
 f = open(sourceFilePath+"include.v","w")
 
-numLayers = 5
+numLayers = 5       #Number of layers of neural network including the input layer
 neuronList = [784,30,30,10,10]
-dataWidth = 16
-sigmoidSize = 5
-weightIntSize = 4
-inputIntSize = 1
+dataWidth = 8 #Bitwidth for weight, input data and sigmoid output
+sigmoidSize = 5 #Number of entries in the sigmoid LUT will be 2**sigmoidSize
+weightIntSize = 4 #Number of integer bits used in the weight data including sign bit
+inputIntSize = 1 #Number of integer bits used in input data including sign bit
 stepSize = 2**(weightIntSize+inputIntSize)/(2**sigmoidSize)
 
 i=1
@@ -71,9 +71,9 @@ for i in range(1,numLayers):
         f.write("\n")
 
     if i == 1: #First layer input is connected to AXI
-        f.write("Layer #(.NN(`numNeuronLayer%d),.numWeight(`numNeuronLayer%d),.layerNum(%d)) l%d(\n\t.clk(s_axi_aclk),\n\t.rst(!s_axi_aresetn),\n\t.weightValid(weightValid),\n\t.biasValid(biasValid),\n\t.weightValue(weightValue),\n\t.biasValue(biasValue),\n\t.config_layer_num(config_layer_num),\n\t.config_neuron_num(config_neuron_num),\n\t.x_valid(axis_in_data_valid),\n\t.x_in(axis_in_data),\n\t.o_valid(o%d_valid),\n\t.x_out(x%d_out)\n);\n\n"%(i,i-1,i,i,i,i))
+        f.write("Layer #(.NN(`numNeuronLayer%d),.numWeight(`numNeuronLayer%d),.dataWidth(`dataWidth),.layerNum(%d)) l%d(\n\t.clk(s_axi_aclk),\n\t.rst(!s_axi_aresetn),\n\t.weightValid(weightValid),\n\t.biasValid(biasValid),\n\t.weightValue(weightValue),\n\t.biasValue(biasValue),\n\t.config_layer_num(config_layer_num),\n\t.config_neuron_num(config_neuron_num),\n\t.x_valid(axis_in_data_valid),\n\t.x_in(axis_in_data),\n\t.o_valid(o%d_valid),\n\t.x_out(x%d_out)\n);\n\n"%(i,i-1,i,i,i,i))
     else: #All other layers
-        f.write("Layer #(.NN(`numNeuronLayer%d),.numWeight(`numNeuronLayer%d),.layerNum(%d)) l%d(\n\t.clk(s_axi_aclk),\n\t.rst(!s_axi_aresetn),\n\t.weightValid(weightValid),\n\t.biasValid(biasValid),\n\t.weightValue(weightValue),\n\t.biasValue(biasValue),\n\t.config_layer_num(config_layer_num),\n\t.config_neuron_num(config_neuron_num),\n\t.x_valid(data_out_valid_%d),\n\t.x_in(out_data_%d),\n\t.o_valid(o%d_valid),\n\t.x_out(x%d_out)\n);\n\n"%(i,i-1,i,i,i-1,i-1,i,i))
+        f.write("Layer #(.NN(`numNeuronLayer%d),.numWeight(`numNeuronLayer%d),.dataWidth(`dataWidth),.layerNum(%d)) l%d(\n\t.clk(s_axi_aclk),\n\t.rst(!s_axi_aresetn),\n\t.weightValid(weightValid),\n\t.biasValid(biasValid),\n\t.weightValue(weightValue),\n\t.biasValue(biasValue),\n\t.config_layer_num(config_layer_num),\n\t.config_neuron_num(config_neuron_num),\n\t.x_valid(data_out_valid_%d),\n\t.x_in(out_data_%d),\n\t.o_valid(o%d_valid),\n\t.x_out(x%d_out)\n);\n\n"%(i,i-1,i,i,i-1,i-1,i,i))
     if i < numLayers-1:
         f.write("//State machine for data pipelining\n\n")
         f.write("reg       state_%d;\n"%(i))

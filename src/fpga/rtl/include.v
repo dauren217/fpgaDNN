@@ -4,4 +4,4 @@
 `define numNeuronLayer2 30
 `define numNeuronLayer3 10
 `define numNeuronLayer4 10
-`define dataWidth 16
+`define dataWidth 8

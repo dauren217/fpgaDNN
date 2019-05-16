@@ -117,7 +117,7 @@ reg [`numNeuronLayer1*`dataWidth-1:0] holdData_1;
 reg [`dataWidth-1:0] out_data_1;
 reg data_out_valid_1;
 
-Layer #(.NN(`numNeuronLayer1),.numWeight(`numNeuronLayer0),.layerNum(1)) l1(
+Layer #(.NN(`numNeuronLayer1),.numWeight(`numNeuronLayer0),.dataWidth(`dataWidth),.layerNum(1)) l1(
 	.clk(s_axi_aclk),
 	.rst(!s_axi_aresetn),
 	.weightValid(weightValid),
@@ -177,7 +177,7 @@ reg [`numNeuronLayer2*`dataWidth-1:0] holdData_2;
 reg [`dataWidth-1:0] out_data_2;
 reg data_out_valid_2;
 
-Layer #(.NN(`numNeuronLayer2),.numWeight(`numNeuronLayer1),.layerNum(2)) l2(
+Layer #(.NN(`numNeuronLayer2),.numWeight(`numNeuronLayer1),.dataWidth(`dataWidth),.layerNum(2)) l2(
 	.clk(s_axi_aclk),
 	.rst(!s_axi_aresetn),
 	.weightValid(weightValid),
@@ -237,7 +237,7 @@ reg [`numNeuronLayer3*`dataWidth-1:0] holdData_3;
 reg [`dataWidth-1:0] out_data_3;
 reg data_out_valid_3;
 
-Layer #(.NN(`numNeuronLayer3),.numWeight(`numNeuronLayer2),.layerNum(3)) l3(
+Layer #(.NN(`numNeuronLayer3),.numWeight(`numNeuronLayer2),.dataWidth(`dataWidth),.layerNum(3)) l3(
 	.clk(s_axi_aclk),
 	.rst(!s_axi_aresetn),
 	.weightValid(weightValid),
@@ -295,7 +295,7 @@ wire [`numNeuronLayer4-1:0] o4_valid;
 wire [`numNeuronLayer4*`dataWidth-1:0] x4_out;
 reg [`numNeuronLayer4*`dataWidth-1:0] holdData_4;
 
-Layer #(.NN(`numNeuronLayer4),.numWeight(`numNeuronLayer3),.layerNum(4)) l4(
+Layer #(.NN(`numNeuronLayer4),.numWeight(`numNeuronLayer3),.dataWidth(`dataWidth),.layerNum(4)) l4(
 	.clk(s_axi_aclk),
 	.rst(!s_axi_aresetn),
 	.weightValid(weightValid),

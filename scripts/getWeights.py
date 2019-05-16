@@ -1,8 +1,8 @@
 import json
 
-dataWidth = 16
-biasFracBits = 11
-weightFracBits = 12
+dataWidth = 8
+biasFracBits = 3
+weightFracBits = 4
 
 def DtoB(num,dataWidth,fracBits):						#funtion for converting into two's complement format
 	if num >= 0:
@@ -31,9 +31,9 @@ myBiases = myDict['biases']
 for layer in range(0,len(myWeights)):
 	for neuron in range(0,len(myWeights[layer])):
 		if neuron <10:
-			fi = 'w16_'+str(layer+1)+'_0'+str(neuron)+'.txt'
+			fi = 'w_'+str(layer+1)+'_0'+str(neuron)+'.txt'
 		else:
-			fi = 'w16_'+str(layer+1)+'_'+str(neuron)+'.txt'
+			fi = 'w_'+str(layer+1)+'_'+str(neuron)+'.txt'
 		f = open(fi,'w')
 		for weights in range(0,len(myWeights[layer][neuron])):
 			if 'e' in str(myWeights[layer][neuron][weights]):
@@ -47,9 +47,9 @@ for layer in range(0,len(myWeights)):
 for layer in range(0,len(myBiases)):
 	for neuron in range(0,len(myBiases[layer])):
 		if neuron <10:
-			fi = 'b16_'+str(layer+1)+'_0'+str(neuron)+'.txt'
+			fi = 'b_'+str(layer+1)+'_0'+str(neuron)+'.txt'
 		else:
-			fi = 'b16_'+str(layer+1)+'_'+str(neuron)+'.txt'
+			fi = 'b_'+str(layer+1)+'_'+str(neuron)+'.txt'
 		p = myBiases[layer][neuron][0]
 		if 'e' in str(p): #To remove very small values with exponents
 			res = '0'
