@@ -18,9 +18,9 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+//`define DEBUG
 
-
-module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
+module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16,sigmoidSize=5)(
     input           clk,
     input           rst,
     input [dataWidth-1:0]    myinput,
@@ -43,15 +43,15 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
     reg [addressWidth:0]   r_addr;//read address has to reach until numWeight hence width is 1 bit more
     reg [dataWidth-1:0]  w_in;
     wire [dataWidth-1:0] w_out;
-    reg [2*dataWidth-2:0]  mul; 
+    reg [2*dataWidth-1:0]  mul; 
     reg [2*dataWidth-1:0]  sum;
-    reg [31:0]  bias;
+    reg [2*dataWidth-1:0]  bias;
     reg         weight_valid;
     reg         mult_valid;
     reg         mux_valid;
     reg         sigValid; 
     reg         sign;
-    wire [2*dataWidth-1:0] muxOut;
+    reg  [2*dataWidth-1:0] muxOut;
     wire [2*dataWidth:0] comboAdd;
     wire [2*dataWidth:0] BiasAdd;
     reg  [dataWidth-1:0] myinputd;
@@ -76,8 +76,6 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
             wen <= 0;
     end
     
-
-    
     assign comboAdd = muxOut+ sum;
     assign BiasAdd = bias + sum;
     assign ren = myinputValid;
@@ -86,7 +84,7 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
     begin
         if(biasValid & (config_layer_num==layerNo) & (config_neuron_num==neuronNo))
         begin
-            bias <= biasValue;
+            bias <= {biasValue[dataWidth-1:0],{dataWidth{1'b0}}};
         end
     end
     
@@ -101,8 +99,8 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
     
     always @(posedge clk)
     begin
-        mul  <= myinputd * w_out[dataWidth-2:0]; //Weight is in sign-magnitude format
-        sign <= w_out[dataWidth-1];
+        mul  <= $signed(myinputd) * $signed(w_out);
+        muxOut <= mul;
     end
     
     
@@ -112,12 +110,12 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
             sum <= 0;
         else if((r_addr == numWeight) & muxValid_f)
         begin
-            if(!bias[31] &!sum[2*dataWidth-1] & BiasAdd[31]) //If bias and sum are positive and after adding bias to sum, if sign bit becomes 1, saturate
+            if(!bias[2*dataWidth-1] &!sum[2*dataWidth-1] & BiasAdd[2*dataWidth-1]) //If bias and sum are positive and after adding bias to sum, if sign bit becomes 1, saturate
             begin
                 sum[2*dataWidth-1] <= 1'b0;
                 sum[2*dataWidth-2:0] <= {2*dataWidth-1{1'b1}};
             end
-            else if(bias[31] & sum[2*dataWidth-1] &  !BiasAdd[31]) //If bias and sum are negative and after addition if sign bit is 0, saturate
+            else if(bias[2*dataWidth-1] & sum[2*dataWidth-1] &  !BiasAdd[2*dataWidth-1]) //If bias and sum are negative and after addition if sign bit is 0, saturate
             begin
                 sum[2*dataWidth-1] <= 1'b1;
                 sum[2*dataWidth-2:0] <= {2*dataWidth-1{1'b0}};
@@ -127,12 +125,16 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
         end
         else if(mux_valid)
         begin
-            if(!muxOut[31] & !sum[2*dataWidth-1] & comboAdd[31])
+            if(!muxOut[2*dataWidth-1] & !sum[2*dataWidth-1] & comboAdd[2*dataWidth-1])
             begin
-                sum <= 32'h7FFFFFFF;
+                sum[2*dataWidth-1] <= 1'b0;
+                sum[2*dataWidth-2:0] <= {2*dataWidth-1{1'b1}};
             end
-            else if(muxOut[31] & sum[2*dataWidth-1] & !comboAdd[31])
-                sum <= 32'h80000000;
+            else if(muxOut[2*dataWidth-1] & sum[2*dataWidth-1] & !comboAdd[2*dataWidth-1])
+            begin
+                sum[2*dataWidth-1] <= 1'b1;
+                sum[2*dataWidth-2:0] <= {2*dataWidth-1{1'b0}};
+            end
             else
                 sum <= comboAdd; 
         end
@@ -162,18 +164,10 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16)(
         .wout(w_out)
     );
     
-    //Instantiation of twoscomplementer
-    twosComplementer t1(
-        .clk(clk),
-        .sign(sign),
-        .i_multOut(mul[2*dataWidth-2:0]),
-        .muxOut(muxOut)
-    );
-    
     //Instantiation of ROM for sigmoid
-    Sig_ROM s1(
+    Sig_ROM #(.inWidth(sigmoidSize),.dataWidth(dataWidth)) s1(
         .clk(clk),
-        .x(sum[31:22]),
+        .x(sum[2*dataWidth-1-:sigmoidSize]),
         .out(out)
     );
 

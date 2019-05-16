@@ -1,10 +1,19 @@
 import sys
+import math
 
 arglen = len(sys.argv)
 
 sourceFilePath = "../../src/fpga/rtl/"
 
 f = open(sourceFilePath+"include.v","w")
+
+numLayers = 5
+neuronList = [784,30,30,10,10]
+dataWidth = 16
+sigmoidSize = 5
+weightIntSize = 4
+inputIntSize = 1
+stepSize = 2**(weightIntSize+inputIntSize)/(2**sigmoidSize)
 
 i=1
 while 1:
@@ -13,7 +22,6 @@ while 1:
 	elif sys.argv[i] == 'numLayers': #Number of layers in the NN including the input layer
 		try:
 			numLayers = int(sys.argv[i+1])
-			f.write("`define numLayers "+str(numLayers)+'\n')
 			i += 2
 		except:
 			print("Error in number of layers")
@@ -22,8 +30,6 @@ while 1:
 		try:
 			neuronList = sys.argv[i+1].split(',')
 			i += 2
-			for j in range(0,numLayers):
-				f.write("`define numNeuronLayer"+str(j)+" "+str(neuronList[j])+'\n')
 		except:
 			print("Error in the list of number of neurons")
 			break
@@ -31,13 +37,18 @@ while 1:
 		try:
 			dataWidth = int(sys.argv[i+1])
 			i += 2
-			f.write("`define dataWidth "+str(dataWidth)+'\n')
 		except:
 			print("Error in datawidth")
 			break
 	else:
 		print("Invalid argument ",sys.argv[i])
 		break
+		
+f.write("`define numLayers "+str(numLayers)+'\n')
+for j in range(0,numLayers):
+	f.write("`define numNeuronLayer"+str(j)+" "+str(neuronList[j])+'\n')
+f.write("`define dataWidth "+str(dataWidth)+'\n')
+	
 f.close()
 f = open(sourceFilePath+"nn_autoGen_top.v","w")
 
@@ -127,4 +138,45 @@ mFind(\n\
 f.write("endmodule")
 
 
+f.close()
+
+
+f = open(sourceFilePath+"sigContent.mif","w")
+
+def DtoB(num, k):
+	binary = ""
+	Integer = int(num)
+	fractional = num - Integer
+	if Integer == 0:
+		binary = '0'
+	else:
+		while(Integer):
+			rem = Integer%2
+			binary = binary + str(rem)
+			Integer = Integer //2
+		binary = binary[ : : -1]
+
+	
+	while(k):
+		fractional = fractional*2
+		f_bit = int(fractional)
+		if (f_bit == 1):
+			fractional = fractional - f_bit
+			binary = binary+'1'
+		else:
+			binary = binary + '0'
+		k = k-1
+	return binary
+
+
+def sigmoid(x):
+	return 1 / (1+math.exp(-x))
+
+
+for i in range(0,2**sigmoidSize):
+	x = stepSize*i-2**(weightIntSize+inputIntSize-1)
+	y = sigmoid(x)
+	z = DtoB(y,dataWidth-1)
+	f.write(z+'\n')
+	
 f.close()

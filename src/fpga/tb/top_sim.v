@@ -100,7 +100,7 @@ module top_sim(
     end
         
     always
-        #2 clock = ~clock;
+        #5 clock = ~clock;
     
     function [7:0] to_ascii;
       input integer a;
@@ -175,8 +175,10 @@ module top_sim(
                 end 
                 fileName[6] = "_";
                 fileName[7] = to_ascii(k);
-                fileName[8] = "6";
-                fileName[9] = "1";
+                fileName[8] = "_";
+                fileName[9] = "6";
+                fileName[10] = "1";
+                fileName[11] = "w";
                 $readmemb(fileName, config_mem);
                 writeAxi(16,j);//Write neuron number
                 for (t=0; t<numWeights[k]; t=t+1) begin
@@ -263,13 +265,33 @@ module top_sim(
         sendData("validation_data_2.txt");
         @(posedge intr);
         readAxi(8);
-        $display("Detected number is %0x",axiRdData);
+        $display("Expected number: 2 Detected number: %0x",axiRdData);
         $display("Total execution time",,,,$time-start,,"ns");
+        i=0;
+        repeat(10)
+        begin
+            readAxi(20);
+            $display("Output of Neuron %d: %0x",i,axiRdData);
+            i=i+1;
+        end
+        start = $time;
+        sendData("validation_data_4.txt");
+        @(posedge intr);
+        readAxi(8);
+        $display("Expected number: 4 Detected number: %0x",axiRdData);
+        $display("Total execution time",,,,$time-start,,"ns");
+        i=0;
+        repeat(10)
+        begin
+            readAxi(20);
+            $display("Output of Neuron %d: %0x",i,axiRdData);
+            i=i+1;
+        end
         start = $time;
         sendData("validation_data_0.txt");
         @(posedge intr);
         readAxi(8);
-        $display("Detected number is %0x",axiRdData);
+        $display("Expected number: 0 Detected number: %0x",axiRdData);
         $display("Total execution time",,,,$time-start,,"ns");
         $display("Neuron outputs");
         i=0;
