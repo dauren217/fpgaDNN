@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-`define numLayers 4
+`include "..\rtl\include.v"
 
 module top_sim(
 
@@ -27,9 +27,9 @@ module top_sim(
     
     reg reset;
     reg clock;
-    reg [15:0] in;
+    reg [`dataWidth-1:0] in;
     reg in_valid;
-    reg [15:0] in_mem [783:0];
+    reg [`dataWidth-1:0] in_mem [783:0];
     reg [7:0] fileName[11:0];
     reg s_axi_awvalid;
     reg [31:0] s_axi_awaddr;
@@ -59,7 +59,7 @@ module top_sim(
     assign numWeights[1] = 784;
     assign numWeights[2] = 30;
     assign numWeights[3] = 30;
-     assign numWeights[4] = 10;
+    assign numWeights[4] = 10;
        
     nn_autoGen_top dut(
     .s_axi_aclk(clock),
@@ -151,7 +151,7 @@ module top_sim(
     task configWeights();
     integer i,j,k,t;
     integer neuronNo_int;
-    reg [15:0] config_mem [783:0];
+    reg [`dataWidth:0] config_mem [783:0];
     begin
         @(posedge clock);
         for(k=1;k<=`numLayers;k=k+1)
@@ -237,6 +237,8 @@ module top_sim(
             @(posedge clock);
             in <= in_mem[t];
             in_valid <= 1;
+            //@(posedge clock);
+            //in_valid <= 0;
         end 
         @(posedge clock);
         in_valid <= 0;
@@ -258,38 +260,11 @@ module top_sim(
         configBias();
         $display("Configuration completed",,,,$time-start,,"ns");
         start = $time;
-        sendData("validation_data_0.txt");
+        sendData("validation_data.txt");
         @(posedge intr);
         readAxi(8);
-        $display("Expected number: 0 Detected number: %0x",axiRdData);
+        $display("Detected number: %0x",axiRdData);
         $display("Total execution time",,,,$time-start,,"ns");
-        i=0;
-        repeat(10)
-        begin
-            readAxi(20);
-            $display("Output of Neuron %d: %0x",i,axiRdData);
-            i=i+1;
-        end
-        start = $time;
-        sendData("validation_data_1.txt");
-        @(posedge intr);
-        readAxi(8);
-        $display("Expected number: 1 Detected number: %0x",axiRdData);
-        $display("Total execution time",,,,$time-start,,"ns");
-        i=0;
-        repeat(10)
-        begin
-            readAxi(20);
-            $display("Output of Neuron %d: %0x",i,axiRdData);
-            i=i+1;
-        end
-        start = $time;
-        sendData("validation_data_2.txt");
-        @(posedge intr);
-        readAxi(8);
-        $display("Expected number: 2 Detected number: %0x",axiRdData);
-        $display("Total execution time",,,,$time-start,,"ns");
-        $display("Neuron outputs");
         i=0;
         repeat(10)
         begin

@@ -48,7 +48,7 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16,sigmoidS
     reg [2*dataWidth-1:0]  bias;
     reg         weight_valid;
     reg         mult_valid;
-    reg         mux_valid;
+    wire        mux_valid;
     reg         sigValid; 
     reg         sign;
     reg  [2*dataWidth-1:0] muxOut;
@@ -75,8 +75,9 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16,sigmoidS
         else
             wen <= 0;
     end
-    
-    assign comboAdd = muxOut+ sum;
+	
+    assign mux_valid = mult_valid;
+    assign comboAdd = mul + sum;
     assign BiasAdd = bias + sum;
     assign ren = myinputValid;
     
@@ -100,7 +101,7 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16,sigmoidS
     always @(posedge clk)
     begin
         mul  <= $signed(myinputd) * $signed(w_out);
-        muxOut <= mul;
+        //muxOut <= mul;
     end
     
     
@@ -125,12 +126,12 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16,sigmoidS
         end
         else if(mux_valid)
         begin
-            if(!muxOut[2*dataWidth-1] & !sum[2*dataWidth-1] & comboAdd[2*dataWidth-1])
+            if(!mul[2*dataWidth-1] & !sum[2*dataWidth-1] & comboAdd[2*dataWidth-1])
             begin
                 sum[2*dataWidth-1] <= 1'b0;
                 sum[2*dataWidth-2:0] <= {2*dataWidth-1{1'b1}};
             end
-            else if(muxOut[2*dataWidth-1] & sum[2*dataWidth-1] & !comboAdd[2*dataWidth-1])
+            else if(mul[2*dataWidth-1] & sum[2*dataWidth-1] & !comboAdd[2*dataWidth-1])
             begin
                 sum[2*dataWidth-1] <= 1'b1;
                 sum[2*dataWidth-2:0] <= {2*dataWidth-1{1'b0}};
@@ -145,7 +146,6 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16,sigmoidS
         myinputd <= myinput;
         weight_valid <= myinputValid;
         mult_valid <= weight_valid;
-        mux_valid <= mult_valid;
         sigValid <= ((r_addr == numWeight) & muxValid_f) ? 1'b1 : 1'b0;
         outvalid <= sigValid;
         muxValid_d <= mux_valid;

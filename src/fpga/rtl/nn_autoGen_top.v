@@ -110,14 +110,14 @@ axi_lite_wrapper # (
 );
 
 localparam IDLE = 'd0,
-           SEND = 'd1;
+			SEND = 'd1;
 wire [`numNeuronLayer1-1:0] o1_valid;
 wire [`numNeuronLayer1*`dataWidth-1:0] x1_out;
 reg [`numNeuronLayer1*`dataWidth-1:0] holdData_1;
 reg [`dataWidth-1:0] out_data_1;
 reg data_out_valid_1;
 
-Layer #(.NN(`numNeuronLayer1),.numWeight(`numNeuronLayer0),.dataWidth(`dataWidth),.layerNum(1)) l1(
+Layer #(.NN(`numNeuronLayer1),.numWeight(`numNeuronLayer0),.dataWidth(`dataWidth),.layerNum(1),.sigmoidSize(`sigmoidSize)) l1(
 	.clk(s_axi_aclk),
 	.rst(!s_axi_aresetn),
 	.weightValid(weightValid),
@@ -138,38 +138,38 @@ reg       state_1;
 integer   count_1;
 always @(posedge s_axi_aclk)
 begin
-    if(!s_axi_aresetn)
-    begin
-        state_1 <= IDLE;
-        count_1 <= 0;
-        data_out_valid_1 <=0;
-    end
-    else
-    begin
-        case(state_1)
-            IDLE: begin
-                count_1 <= 0;
-                data_out_valid_1 <=0;
-                if (o1_valid[0] == 1'b1)
-                begin
-                    holdData_1 <= x1_out;
-                    state_1 <= SEND;
-                end
-            end
-            SEND: begin
-                out_data_1 <= holdData_1[`dataWidth-1:0];
-                holdData_1 <= holdData_1>>`dataWidth;
-                count_1 <= count_1 +1;
-                data_out_valid_1 <= 1;
-                if (count_1 == `numNeuronLayer1)
-                begin
-                    state_1 <= IDLE;
-                    data_out_valid_1 <= 0;
-                end
-            end
-        endcase
-    end
-end
+		if(!s_axi_aresetn)
+		begin
+			state_1 <= IDLE;
+			count_1 <= 0;
+			data_out_valid_1 <=0;
+		end
+		else
+		begin
+			case(state_1)
+				IDLE: begin
+					count_1 <= 0;
+					data_out_valid_1 <=0;
+					if (o1_valid[0] == 1'b1)
+					begin
+						holdData_1 <= x1_out;
+						state_1 <= SEND;
+					end
+				end
+				SEND: begin
+					out_data_1 <= holdData_1[`dataWidth-1:0];
+					holdData_1 <= holdData_1>>`dataWidth;
+					count_1 <= count_1 +1;
+					data_out_valid_1 <= 1;
+					if (count_1 == `numNeuronLayer1)
+					begin
+						state_1 <= IDLE;
+						data_out_valid_1 <= 0;
+					end
+				end
+			endcase
+		end
+	end
 
 wire [`numNeuronLayer2-1:0] o2_valid;
 wire [`numNeuronLayer2*`dataWidth-1:0] x2_out;
@@ -177,7 +177,7 @@ reg [`numNeuronLayer2*`dataWidth-1:0] holdData_2;
 reg [`dataWidth-1:0] out_data_2;
 reg data_out_valid_2;
 
-Layer #(.NN(`numNeuronLayer2),.numWeight(`numNeuronLayer1),.dataWidth(`dataWidth),.layerNum(2)) l2(
+Layer #(.NN(`numNeuronLayer2),.numWeight(`numNeuronLayer1),.dataWidth(`dataWidth),.layerNum(2),.sigmoidSize(`sigmoidSize)) l2(
 	.clk(s_axi_aclk),
 	.rst(!s_axi_aresetn),
 	.weightValid(weightValid),
@@ -198,38 +198,38 @@ reg       state_2;
 integer   count_2;
 always @(posedge s_axi_aclk)
 begin
-    if(!s_axi_aresetn)
-    begin
-        state_2 <= IDLE;
-        count_2 <= 0;
-        data_out_valid_2 <=0;
-    end
-    else
-    begin
-        case(state_2)
-            IDLE: begin
-                count_2 <= 0;
-                data_out_valid_2 <=0;
-                if (o2_valid[0] == 1'b1)
-                begin
-                    holdData_2 <= x2_out;
-                    state_2 <= SEND;
-                end
-            end
-            SEND: begin
-                out_data_2 <= holdData_2[`dataWidth-1:0];
-                holdData_2 <= holdData_2>>`dataWidth;
-                count_2 <= count_2 +1;
-                data_out_valid_2 <= 1;
-                if (count_2 == `numNeuronLayer2)
-                begin
-                    state_2 <= IDLE;
-                    data_out_valid_2 <= 0;
-                end
-            end
-        endcase
-    end
-end
+		if(!s_axi_aresetn)
+		begin
+			state_2 <= IDLE;
+			count_2 <= 0;
+			data_out_valid_2 <=0;
+		end
+		else
+		begin
+			case(state_2)
+				IDLE: begin
+					count_2 <= 0;
+					data_out_valid_2 <=0;
+					if (o2_valid[0] == 1'b1)
+					begin
+						holdData_2 <= x2_out;
+						state_2 <= SEND;
+					end
+				end
+				SEND: begin
+					out_data_2 <= holdData_2[`dataWidth-1:0];
+					holdData_2 <= holdData_2>>`dataWidth;
+					count_2 <= count_2 +1;
+					data_out_valid_2 <= 1;
+					if (count_2 == `numNeuronLayer2)
+					begin
+						state_2 <= IDLE;
+						data_out_valid_2 <= 0;
+					end
+				end
+			endcase
+		end
+	end
 
 wire [`numNeuronLayer3-1:0] o3_valid;
 wire [`numNeuronLayer3*`dataWidth-1:0] x3_out;
@@ -237,7 +237,7 @@ reg [`numNeuronLayer3*`dataWidth-1:0] holdData_3;
 reg [`dataWidth-1:0] out_data_3;
 reg data_out_valid_3;
 
-Layer #(.NN(`numNeuronLayer3),.numWeight(`numNeuronLayer2),.dataWidth(`dataWidth),.layerNum(3)) l3(
+Layer #(.NN(`numNeuronLayer3),.numWeight(`numNeuronLayer2),.dataWidth(`dataWidth),.layerNum(3),.sigmoidSize(`sigmoidSize)) l3(
 	.clk(s_axi_aclk),
 	.rst(!s_axi_aresetn),
 	.weightValid(weightValid),
@@ -258,44 +258,44 @@ reg       state_3;
 integer   count_3;
 always @(posedge s_axi_aclk)
 begin
-    if(!s_axi_aresetn)
-    begin
-        state_3 <= IDLE;
-        count_3 <= 0;
-        data_out_valid_3 <=0;
-    end
-    else
-    begin
-        case(state_3)
-            IDLE: begin
-                count_3 <= 0;
-                data_out_valid_3 <=0;
-                if (o3_valid[0] == 1'b1)
-                begin
-                    holdData_3 <= x3_out;
-                    state_3 <= SEND;
-                end
-            end
-            SEND: begin
-                out_data_3 <= holdData_3[`dataWidth-1:0];
-                holdData_3 <= holdData_3>>`dataWidth;
-                count_3 <= count_3 +1;
-                data_out_valid_3 <= 1;
-                if (count_3 == `numNeuronLayer3)
-                begin
-                    state_3 <= IDLE;
-                    data_out_valid_3 <= 0;
-                end
-            end
-        endcase
-    end
-end
+		if(!s_axi_aresetn)
+		begin
+			state_3 <= IDLE;
+			count_3 <= 0;
+			data_out_valid_3 <=0;
+		end
+		else
+		begin
+			case(state_3)
+				IDLE: begin
+					count_3 <= 0;
+					data_out_valid_3 <=0;
+					if (o3_valid[0] == 1'b1)
+					begin
+						holdData_3 <= x3_out;
+						state_3 <= SEND;
+					end
+				end
+				SEND: begin
+					out_data_3 <= holdData_3[`dataWidth-1:0];
+					holdData_3 <= holdData_3>>`dataWidth;
+					count_3 <= count_3 +1;
+					data_out_valid_3 <= 1;
+					if (count_3 == `numNeuronLayer3)
+					begin
+						state_3 <= IDLE;
+						data_out_valid_3 <= 0;
+					end
+				end
+			endcase
+		end
+	end
 
 wire [`numNeuronLayer4-1:0] o4_valid;
 wire [`numNeuronLayer4*`dataWidth-1:0] x4_out;
 reg [`numNeuronLayer4*`dataWidth-1:0] holdData_4;
 
-Layer #(.NN(`numNeuronLayer4),.numWeight(`numNeuronLayer3),.dataWidth(`dataWidth),.layerNum(4)) l4(
+Layer #(.NN(`numNeuronLayer4),.numWeight(`numNeuronLayer3),.dataWidth(`dataWidth),.layerNum(4),.sigmoidSize(`sigmoidSize)) l4(
 	.clk(s_axi_aclk),
 	.rst(!s_axi_aresetn),
 	.weightValid(weightValid),
@@ -313,22 +313,22 @@ Layer #(.NN(`numNeuronLayer4),.numWeight(`numNeuronLayer3),.dataWidth(`dataWidth
 assign axi_rd_data = holdData_4[`dataWidth-1:0];
 
 always @(posedge s_axi_aclk)
-begin
-    if (o4_valid[0] == 1'b1)
-        holdData_4 <= x4_out;
-    else if(axi_rd_en)
-    begin
-        holdData_4 <= holdData_4>>`dataWidth;
-    end
-end
+	begin
+		if (o4_valid[0] == 1'b1)
+			holdData_4 <= x4_out;
+		else if(axi_rd_en)
+		begin
+			holdData_4 <= holdData_4>>`dataWidth;
+		end
+	end
 
 
 maxFinder #(.numInput(`numNeuronLayer4),.inputWidth(`dataWidth))
-mFind(
-    .i_clk(s_axi_aclk),
-    .i_data(x4_out),
-    .i_valid(o4_valid),
-    .o_data(out),
-    .o_data_valid(out_valid)
-);
+	mFind(
+		.i_clk(s_axi_aclk),
+		.i_data(x4_out),
+		.i_valid(o4_valid),
+		.o_data(out),
+		.o_data_valid(out_valid)
+	);
 endmodule

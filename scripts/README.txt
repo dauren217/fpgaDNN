@@ -1,9 +1,17 @@
-file trainNN.py is for training the neural network. Files netowrk2.py and mnist_loader.py are used to generate the neural network. The weight and bias values are stored in the text file named WeightAndBiases.txt
+Run trainNN.py is for training the neural network. 
+Files netowrk2.py and mnist_loader.py are used to generate the neural network. 
+After training, the weight and bias values are stored in the text file named WeigntsAndBiases.txt
+
+File gen_nn.py is used for generating Verilog code for the neural network with specified number of layers, neurons and datawidth
+The output is stored in /src/fpga/rtl directory
+
+File genWegitsAndBias.py is for converting the weight and bias values into the binary format and storing in respective file.
+You can specify the total datawidth and the size (number of bits) of integer field for weights and biases.
+It uses WeigntsAndBiases.txt as input.
+The output is stored in /imp/fpnn.sim/sim_1/behav/xsim directory.
 
 
-File getWeights.py is for converting the weight and bias values into the binary format and storing in respective file. The weight values for a first neuron in the first hidden layer are stored in the file "16_0_00.txt". The first zero is for number of layer and the second one is for number of neuron. Bias values are stored in files with similar filenames. Letter 'b' stands in the beginning of the filename to distinguish the files.
+File genTestData.py is for creating test data in binary format. 
+The output is stored in /imp/fpnn.sim/sim_1/behav/xsim directory as validation_data.txt.
 
-The scripts are written for 16-bit model. If needed to change the number of bits, please, change the code in the files where it asked to
-
-
-File TestGenerator.py is for creating test data in binary format. You can specify the number of a test data file and number of bits. The correct result for the respective test data file shall be printed while running the file
+genAll.py script runs all the above scripts.

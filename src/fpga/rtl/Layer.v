@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Layer #(parameter NN = 30,numWeight=784,dataWidth=16,layerNum=1) //Number of neurons in the layer
+module Layer #(parameter NN = 30,numWeight=784,dataWidth=16,layerNum=1,sigmoidSize=10) //Number of neurons in the layer
     (
     input           clk,
     input           rst,
@@ -40,7 +40,7 @@ module Layer #(parameter NN = 30,numWeight=784,dataWidth=16,layerNum=1) //Number
     generate
         for (k=0; k<=NN-1; k=k+1)
         begin: neurons 
-            neuron #(.numWeight(numWeight),.layerNo(layerNum),.neuronNo(k),.dataWidth(dataWidth))nk( 
+            neuron #(.numWeight(numWeight),.layerNo(layerNum),.neuronNo(k),.dataWidth(dataWidth),.sigmoidSize(sigmoidSize))nk( 
                        .clk(clk), 
                        .rst(rst),
                        .myinput(x_in), 
