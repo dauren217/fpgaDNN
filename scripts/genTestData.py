@@ -9,7 +9,7 @@ except:
 import gzip
 import numpy as np
 
-dataWidth = 32					#specify the number of bits in test data
+dataWidth = 16					#specify the number of bits in test data
 IntSize = 1 #Number of bits of integer portion including sign bit
 
 try:
@@ -17,33 +17,21 @@ try:
 except:
 	testDataNum = 3
 
-
-def DtoB(num, k):
-	binary = "0" #Sign bit is always zero for MNIST
-	Integer = int(num)
-	fractional = num - Integer
-	if Integer == 0:
-		binary = binary+'0'
+def DtoB(num,dataWidth,fracBits):						#funtion for converting into two's complement format
+	if num >= 0:
+		num = num * (2**fracBits)
+		num = int(num)
+		e = bin(num)[2:]
 	else:
-		while(Integer):
-			rem = Integer%2
-			binary = binary + str(rem)
-			Integer = Integer //2
-	
-		binary = binary[ : : -1]
-	
-	while(k):
-		fractional = fractional*2
-		f_bit = int(fractional)
-		if (f_bit == 1):
-			fractional = fractional - f_bit
-			binary = binary+'1'
+		num = -num
+		num = num * (2**fracBits)		#number of fractional bits
+		num = int(num)
+		if num == 0:
+			d = 0
 		else:
-			binary = binary + '0'
-		k = k-1
-		
-	return binary
-
+			d = 2**dataWidth - num
+		e = bin(d)[2:]
+	return e
 
 
 def load_data():
@@ -64,7 +52,7 @@ def genTestData(dataWidth,IntSize,testDataNum):
 	fileName = 'visual_data'+str(te_d[1][testDataNum])+'.txt'
 	g = open(outputPath+fileName,'w')
 	for i in range(0,x):
-		myData = DtoB(test_inputs[testDataNum][0][i],d)
+		myData = DtoB(test_inputs[testDataNum][0][i],dataWidth,d)
 		f.write(myData+'\n')
 		g.write(myData)
 		count += 1
@@ -74,4 +62,4 @@ def genTestData(dataWidth,IntSize,testDataNum):
 	f.close()
 		
 if __name__ == "__main__":
-	genTestData(dataWidth,IntSize,testDataNum)
+	genTestData(dataWidth,IntSize,testDataNum=0)

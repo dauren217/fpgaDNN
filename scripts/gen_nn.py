@@ -15,7 +15,7 @@ inputIntSize = 1 #Number of integer bits used in input data including sign bit
 def gen_nn(numLayers,neuronList,dataWidth,sigmoidSize,weightIntSize,inputIntSize):
 	if sigmoidSize >= weightIntSize+inputIntSize:
 		stepSize = 2**(weightIntSize+inputIntSize)/(2**sigmoidSize)
-	else:
+	else:  #lower bits of input to the sigmoid LUT larger than sigmoidSize is dropped
 		stepSize = 1
 	sourceFilePath = "../src/fpga/rtl/"
 	
@@ -149,24 +149,21 @@ def gen_nn(numLayers,neuronList,dataWidth,sigmoidSize,weightIntSize,inputIntSize
 	
 	f = open(sourceFilePath+"sigContent.mif","w")
 	
-	def DtoB(num, k):
-		binary = '0' #Sign bit is always zero for sigmoid
-		Integer = int(num)
-		fractional = num - Integer
-		if Integer == 0:
-			binary += '0'
+	def DtoB(num,dataWidth,fracBits):						#funtion for converting into two's complement format
+		if num >= 0:
+			num = num * (2**fracBits)
+			num = int(num)
+			e = bin(num)[2:]
 		else:
-			binary += '1'
-		while(k):
-			fractional = fractional*2
-			f_bit = int(fractional)
-			if (f_bit == 1):
-				fractional = fractional - f_bit
-				binary = binary+'1'
+			num = -num
+			num = num * (2**fracBits)		#number of fractional bits
+			num = int(num)
+			if num == 0:
+				d = 0
 			else:
-				binary = binary + '0'
-			k = k-1
-		return binary
+				d = 2**dataWidth - num
+			e = bin(d)[2:]
+		return e
 	
 	
 	def sigmoid(x):
@@ -179,7 +176,7 @@ def gen_nn(numLayers,neuronList,dataWidth,sigmoidSize,weightIntSize,inputIntSize
 		else:
 			x = stepSize*i-2**(sigmoidSize-1)
 		y = sigmoid(x)
-		z = DtoB(y,dataWidth-2)#1 bit sign and 1 bit integer
+		z = DtoB(y,dataWidth,dataWidth-inputIntSize)
 		f.write(z+'\n')
 		
 	f.close()
