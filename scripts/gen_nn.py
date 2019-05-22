@@ -14,9 +14,9 @@ inputIntSize = 1 #Number of integer bits used in input data including sign bit
 
 def gen_nn(numLayers,neuronList,dataWidth,sigmoidSize,weightIntSize,inputIntSize):
 	if sigmoidSize >= weightIntSize+inputIntSize:
-		stepSize = 2**(weightIntSize+inputIntSize)/(2**sigmoidSize)
+		stepSize = 2**(weightIntSize+inputIntSize)*1.0/(2**sigmoidSize)
 	else:  #lower bits of input to the sigmoid LUT larger than sigmoidSize is dropped
-		stepSize = 1
+		stepSize = 1*1.0
 	sourceFilePath = "../src/fpga/rtl/"
 	
 	f = open(sourceFilePath+"include.v","w")

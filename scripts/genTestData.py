@@ -36,7 +36,10 @@ def DtoB(num,dataWidth,fracBits):						#funtion for converting into two's comple
 
 def load_data():
 	f = gzip.open('mnist.pkl.gz', 'rb') 		#change this location to the resiprositry where MNIST dataset sits
-	training_data, validation_data, test_data = pickle.load(f,encoding='latin1')
+	try:
+		training_data, validation_data, test_data = pickle.load(f,encoding='latin1')
+	except:
+		training_data, validation_data, test_data = pickle.load(f)
 	f.close()
 	return (training_data, validation_data, test_data)
 
