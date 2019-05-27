@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 //`define DEBUG
 
-module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16,sigmoidSize=5)(
+module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16,sigmoidSize=5,actType="sigmoid")(
     input           clk,
     input           rst,
     input [dataWidth-1:0]    myinput,
@@ -164,12 +164,25 @@ module neuron #(parameter layerNo=0,neuronNo=0,numWeight=3,dataWidth=16,sigmoidS
         .wout(w_out)
     );
     
-    //Instantiation of ROM for sigmoid
-    Sig_ROM #(.inWidth(sigmoidSize),.dataWidth(dataWidth)) s1(
-        .clk(clk),
-        .x(sum[2*dataWidth-1-:sigmoidSize]),
-        .out(out)
-    );
+	generate
+		if(actType == "sigmoid")
+		begin:siginst
+		//Instantiation of ROM for sigmoid
+			Sig_ROM #(.inWidth(sigmoidSize),.dataWidth(dataWidth)) s1(
+			.clk(clk),
+			.x(sum[2*dataWidth-1-:sigmoidSize]),
+			.out(out)
+		);
+		end
+		else
+		begin:ReLUinst
+			ReLU #(.dataWidth(dataWidth)) s1 (
+			.clk(clk),
+			.x(sum[2*dataWidth-3-:dataWidth]),
+			.out(out)
+		);
+		end
+	endgenerate
 
     `ifdef DEBUG
     always @(posedge clk)

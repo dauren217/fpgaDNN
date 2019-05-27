@@ -67,6 +67,7 @@ wire weightValid;
 wire biasValid;
 wire axi_rd_en;
 wire [31:0] axi_rd_data;
+wire softReset;
 
 assign intr = out_valid;
 assign axis_in_data_ready = 1'b1;
@@ -106,8 +107,13 @@ axi_lite_wrapper # (
     .nnOut_valid(out_valid),
     .nnOut(out),
     .axi_rd_en(axi_rd_en),
-    .axi_rd_data(axi_rd_data)
+    .axi_rd_data(axi_rd_data),
+    .softReset(softReset)
 );
+
+wire reset;
+
+assign reset = ~s_axi_aresetn|softReset;
 
 localparam IDLE = 'd0,
 			SEND = 'd1;
@@ -119,7 +125,7 @@ reg data_out_valid_1;
 
 Layer #(.NN(`numNeuronLayer1),.numWeight(`numNeuronLayer0),.dataWidth(`dataWidth),.layerNum(1),.sigmoidSize(`sigmoidSize)) l1(
 	.clk(s_axi_aclk),
-	.rst(!s_axi_aresetn),
+	.rst(reset),
 	.weightValid(weightValid),
 	.biasValid(biasValid),
 	.weightValue(weightValue),
@@ -138,7 +144,7 @@ reg       state_1;
 integer   count_1;
 always @(posedge s_axi_aclk)
 begin
-		if(!s_axi_aresetn)
+		if(reset)
 		begin
 			state_1 <= IDLE;
 			count_1 <= 0;
@@ -179,7 +185,7 @@ reg data_out_valid_2;
 
 Layer #(.NN(`numNeuronLayer2),.numWeight(`numNeuronLayer1),.dataWidth(`dataWidth),.layerNum(2),.sigmoidSize(`sigmoidSize)) l2(
 	.clk(s_axi_aclk),
-	.rst(!s_axi_aresetn),
+	.rst(reset),
 	.weightValid(weightValid),
 	.biasValid(biasValid),
 	.weightValue(weightValue),
@@ -198,7 +204,7 @@ reg       state_2;
 integer   count_2;
 always @(posedge s_axi_aclk)
 begin
-		if(!s_axi_aresetn)
+		if(reset)
 		begin
 			state_2 <= IDLE;
 			count_2 <= 0;
@@ -239,7 +245,7 @@ reg data_out_valid_3;
 
 Layer #(.NN(`numNeuronLayer3),.numWeight(`numNeuronLayer2),.dataWidth(`dataWidth),.layerNum(3),.sigmoidSize(`sigmoidSize)) l3(
 	.clk(s_axi_aclk),
-	.rst(!s_axi_aresetn),
+	.rst(reset),
 	.weightValid(weightValid),
 	.biasValid(biasValid),
 	.weightValue(weightValue),
@@ -258,7 +264,7 @@ reg       state_3;
 integer   count_3;
 always @(posedge s_axi_aclk)
 begin
-		if(!s_axi_aresetn)
+		if(reset)
 		begin
 			state_3 <= IDLE;
 			count_3 <= 0;
@@ -297,7 +303,7 @@ reg [`numNeuronLayer4*`dataWidth-1:0] holdData_4;
 
 Layer #(.NN(`numNeuronLayer4),.numWeight(`numNeuronLayer3),.dataWidth(`dataWidth),.layerNum(4),.sigmoidSize(`sigmoidSize)) l4(
 	.clk(s_axi_aclk),
-	.rst(!s_axi_aresetn),
+	.rst(reset),
 	.weightValid(weightValid),
 	.biasValid(biasValid),
 	.weightValue(weightValue),

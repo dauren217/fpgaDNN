@@ -67,6 +67,7 @@ wire weightValid;
 wire biasValid;
 wire axi_rd_en;
 wire [31:0] axi_rd_data;
+wire softReset;
 
 assign intr = out_valid;
 assign axis_in_data_ready = 1'b1;
@@ -106,6 +107,11 @@ axi_lite_wrapper # (
     .nnOut_valid(out_valid),
     .nnOut(out),
     .axi_rd_en(axi_rd_en),
-    .axi_rd_data(axi_rd_data)
+    .axi_rd_data(axi_rd_data),
+    .softReset(softReset)
 );
+
+wire reset;
+
+assign reset = ~s_axi_aresetn|softReset;
 

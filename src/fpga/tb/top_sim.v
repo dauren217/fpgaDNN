@@ -29,8 +29,8 @@ module top_sim(
     reg clock;
     reg [`dataWidth-1:0] in;
     reg in_valid;
-    reg [`dataWidth-1:0] in_mem [783:0];
-    reg [7:0] fileName[11:0];
+    reg [`dataWidth-1:0] in_mem [784:0];
+    reg [7:0] fileName[23:0];
     reg s_axi_awvalid;
     reg [31:0] s_axi_awaddr;
     wire s_axi_awready;
@@ -47,7 +47,8 @@ module top_sim(
     wire s_axi_arready;
     wire s_axi_rvalid;
     reg s_axi_rready;
-    
+    reg [`dataWidth-1:0] expected;
+
     wire [31:0] numNeurons[31:1];
     wire [31:0] numWeights[31:1];
     
@@ -60,7 +61,10 @@ module top_sim(
     assign numWeights[2] = 30;
     assign numWeights[3] = 30;
     assign numWeights[4] = 10;
-       
+    
+    integer right=0;
+	integer wrong=0;
+	
     nn_autoGen_top dut(
     .s_axi_aclk(clock),
     .s_axi_aresetn(reset),
@@ -226,7 +230,7 @@ module top_sim(
     
     
     task sendData();
-    input [25*7:0] fileName;
+    //input [25*7:0] fileName;
     integer t;
     begin
         $readmemb(fileName, in_mem);
@@ -242,12 +246,14 @@ module top_sim(
         end 
         @(posedge clock);
         in_valid <= 0;
+        expected = in_mem[t];
     end
     endtask
    
-    integer i,layerNo=1;
+    integer i,j,layerNo=1,k;
     integer start;
-   
+    integer testDataCount;
+    integer testDataCount_int;
     initial
     begin
         reset = 0;
@@ -260,18 +266,58 @@ module top_sim(
         configBias();
         $display("Configuration completed",,,,$time-start,,"ns");
         start = $time;
-        sendData("validation_data.txt");
-        @(posedge intr);
-        readAxi(8);
-        $display("Detected number: %0x",axiRdData);
-        $display("Total execution time",,,,$time-start,,"ns");
-        i=0;
-        repeat(10)
-        begin
-            readAxi(20);
-            $display("Output of Neuron %d: %0x",i,axiRdData);
-            i=i+1;
-        end
+		for(testDataCount=0;testDataCount<10000;testDataCount=testDataCount+1)
+		begin
+			testDataCount_int = testDataCount;
+			fileName[0] = "t";
+			fileName[1] = "x";
+			fileName[2] = "t";
+			fileName[3] = ".";
+			fileName[4] = "0";
+			fileName[5] = "0";
+			fileName[6] = "0";
+			fileName[7] = "0";
+            i=0;
+            while(testDataCount_int != 0)
+            begin
+                fileName[i+4] = to_ascii(testDataCount_int%10);
+                testDataCount_int = testDataCount_int/10;
+                i=i+1;
+            end 
+			fileName[8] = "_";
+            fileName[9] = "a";
+            fileName[10] = "t";
+            fileName[11] = "a";
+            fileName[12] = "d";
+            fileName[13] = "_";
+            fileName[14] = "n";
+            fileName[15] = "o";
+			fileName[16] = "i";
+			fileName[17] = "t";
+            fileName[18] = "a";
+            fileName[19] = "d";
+            fileName[20] = "i";
+            fileName[21] = "l";
+            fileName[22] = "a";
+            fileName[23] = "v";
+			sendData();
+			@(posedge intr);
+			//readAxi(24);
+			//$display("Status: %0x",axiRdData);
+			readAxi(8);
+			$display("Detected number: %0x, Expected: %x",axiRdData,expected);
+			if(axiRdData==expected)
+				right = right+1;
+			/*$display("Total execution time",,,,$time-start,,"ns");
+			j=0;
+			repeat(10)
+			begin
+				readAxi(20);
+				$display("Output of Neuron %d: %0x",j,axiRdData);
+				j=j+1;
+			end*/
+		end
+		$display("Accuracy: %f",right*100.0/10000);
         $stop;
     end
 

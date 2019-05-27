@@ -20,7 +20,7 @@ begin
         inDataBuffer <= i_data;
         o_data <= 0;
     end
-    else if(counter == (numInput-1))
+    else if(counter == numInput)
     begin
         counter <= 0;
         o_data_valid <= 1'b1;

@@ -8,12 +8,13 @@ weightFracWidth = dataWidth-weightIntWidth
 biasIntWidth = dataIntWidth+weightIntWidth
 biasFracWidth = dataWidth-biasIntWidth
 outputPath = "../imp/fpnn.sim/sim_1/behav/xsim/"
+headerPath = "."
 
 def DtoB(num,dataWidth,fracBits):						#funtion for converting into two's complement format
 	if num >= 0:
 		num = num * (2**fracBits)
 		num = int(num)
-		e = bin(num)[2:]
+		d = num
 	else:
 		num = -num
 		num = num * (2**fracBits)		#number of fractional bits
@@ -22,16 +23,18 @@ def DtoB(num,dataWidth,fracBits):						#funtion for converting into two's comple
 			d = 0
 		else:
 			d = 2**dataWidth - num
-		e = bin(d)[2:]
-	return e
+	return d
 
 def genWaitAndBias(dataWidth,weightFracWidth,biasFracWidth):
-	myDataFile = open("WeigntsAndBiases.txt","r")
+	weightIntWidth = dataWidth-weightFracWidth
+	biasIntWidth = dataWidth-biasFracWidth
+	myDataFile = open("WeigntsAndBiasesSigmoid.txt","r")
+	weightHeaderFile = open("weightValues.h","w")
 	myData = myDataFile.read()
 	myDict = json.loads(myData)
 	myWeights = myDict['weights']
 	myBiases = myDict['biases']
-	
+	weightHeaderFile.write("int weightValues[]={")
 	for layer in range(0,len(myWeights)):
 		for neuron in range(0,len(myWeights[layer])):
 			if neuron <10:
@@ -39,15 +42,24 @@ def genWaitAndBias(dataWidth,weightFracWidth,biasFracWidth):
 			else:
 				fi = 'w_'+str(layer+1)+'_'+str(neuron)+'.txt'
 			f = open(outputPath+fi,'w')
-			for weights in range(0,len(myWeights[layer][neuron])):
-				if 'e' in str(myWeights[layer][neuron][weights]):
+			for weight in range(0,len(myWeights[layer][neuron])):
+				if 'e' in str(myWeights[layer][neuron][weight]):
 					p = '0'
 				else:
-					p = DtoB(myWeights[layer][neuron][weights],dataWidth,weightFracWidth)
+					if myWeights[layer][neuron][weight] > 2**(weightIntWidth-1):
+						myWeights[layer][neuron][weight] = 2**(weightIntWidth-1)-2**(-weightFracWidth)
+					elif myWeights[layer][neuron][weight] < -2**(weightIntWidth-1):
+						myWeights[layer][neuron][weight] = -2**(weightIntWidth-1)
+					wInDec = DtoB(myWeights[layer][neuron][weight],dataWidth,weightFracWidth)
+					p = bin(wInDec)[2:]
 				f.write(p+'\n')
+				weightHeaderFile.write(str(wInDec)+',')
 			f.close()
-			
-			
+	weightHeaderFile.write('0};\n')
+	weightHeaderFile.close()
+	
+	biasHeaderFile = open("biasValues.h","w")
+	biasHeaderFile.write("int biasValues[]={")
 	for layer in range(0,len(myBiases)):
 		for neuron in range(0,len(myBiases[layer])):
 			if neuron <10:
@@ -58,11 +70,18 @@ def genWaitAndBias(dataWidth,weightFracWidth,biasFracWidth):
 			if 'e' in str(p): #To remove very small values with exponents
 				res = '0'
 			else:
-				res = DtoB(p,dataWidth,biasFracWidth)
+				if p > 2**(biasIntWidth-1):
+					p = 2**(biasIntWidth-1)-2**(-biasFracWidth)
+				elif p < -2**(biasIntWidth-1):
+					p = -2**(biasIntWidth-1)
+				bInDec = DtoB(p,dataWidth,biasFracWidth)
+				res = bin(bInDec)[2:]
 			f = open(outputPath+fi,'w')
 			f.write(res)
+			biasHeaderFile.write(str(bInDec)+',')
 			f.close()
-
+	biasHeaderFile.write('0};\n')
+	biasHeaderFile.close()
 			
 if __name__ == "__main__":
 	genWaitAndBias(dataWidth,weightFracWidth,biasFracWidth)

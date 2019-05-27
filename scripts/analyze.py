@@ -2,12 +2,12 @@ import os
 import re
 import genAll
 
-numLayers = 4       #Number of layers of neural network including the input layer
-neuronList = [784,30,30,10]
+numLayers = 5       #Number of layers of neural network including the input layer
+neuronList = [784,30,30,10,10]
 sigmoidWidth = 5 #Number of entries in the sigmoid LUT will be 2**sigmoidWidth
 weightIntWidth = 4 #Number of integer bits used in the weight data including sign bit
 inputIntWidth = 1 #Number of integer bits used in input data including sign bit
-
+dataWidth = 8
 
 f = open("data/Resource Utilization.csv","w")
 f.write("Data Width,LUTs,FFs,BRAMs,DSP\n")
@@ -31,8 +31,8 @@ rg3 = re.compile(re3+re5+re6+re7+re8,re.IGNORECASE|re.DOTALL)
 rg4 = re.compile(re4+re5+re6+re7+re8,re.IGNORECASE|re.DOTALL)
 rg5 = re.compile(re7+re8,re.IGNORECASE|re.DOTALL)
 
-for dataWidth in range(31,34,2):
-	genAll.genAll(numLayers,neuronList,dataWidth,sigmoidWidth,weightIntWidth,inputIntWidth,"../src/fpga/rtl/")
+for sigmoidWidth in range(5,11,1):
+	genAll.genAll(numLayers,neuronList,dataWidth,sigmoidWidth,weightIntWidth,inputIntWidth)
 	os.system("vivado -mode tcl -source runScript.tcl")
 	f.write(str(dataWidth)+',')
 	with open('utilization.log') as fp:

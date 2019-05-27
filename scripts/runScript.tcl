@@ -7,6 +7,7 @@ read_mem ../src/fpga/rtl/sigContent.mif
 read_verilog -library xil_defaultlib {
   ../src/fpga/rtl/Layer.v
   ../src/fpga/rtl/Sig_ROM.v
+  ../src/fpga/rtl/relu.v
   ../src/fpga/rtl/Weight_Memory.v
   ../src/fpga/rtl/axi_lite_wrapper.v
   ../src/fpga/rtl/maxFinder.v

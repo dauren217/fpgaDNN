@@ -89,7 +89,8 @@
         input           [31:0]  nnOut,
         input                   nnOut_valid,
         output reg              axi_rd_en,
-        input           [31:0]  axi_rd_data
+        input           [31:0]  axi_rd_data,
+        output                  softReset
 	);
 
 	// AXI4LITE signals
@@ -120,8 +121,8 @@
 	reg [C_S_AXI_DATA_WIDTH-1:0]	outputReg;
 	reg [C_S_AXI_DATA_WIDTH-1:0]	layerReg;
 	reg [C_S_AXI_DATA_WIDTH-1:0]	neuronReg;
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg5;
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg6;
+	reg [C_S_AXI_DATA_WIDTH-1:0]	statReg;
+	reg [C_S_AXI_DATA_WIDTH-1:0]	controlReg;
 	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg7;
     
 	wire	 slv_reg_rden;
@@ -149,6 +150,7 @@
     assign neuronNumber = neuronReg;
     assign weightValue = weightReg;
     assign biasValue = biasReg;
+    assign softReset = controlReg[0];
 
 	always @( posedge S_AXI_ACLK )
 	begin
@@ -239,45 +241,39 @@
 
 	always @( posedge S_AXI_ACLK )
 	begin
-	  if ( S_AXI_ARESETN == 1'b0 )
-	    begin
-	      weightReg <= 0;
-	      biasReg <= 0;
-	      layerReg <= 0;
-	      neuronReg <= 0;
-	      slv_reg5 <= 0;
-	      slv_reg6 <= 0;
-	      slv_reg7 <= 0;
-          weightValid <= 1'b0;
-          biasValid <= 1'b0;
-	    end 
-	  else begin
-        weightValid <= 1'b0;
-        biasValid <= 1'b0;
-	    if (slv_reg_wren)
-	      begin
-	        case ( axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
-	          3'h0:begin
-	                weightReg <= S_AXI_WDATA;
-                    weightValid <= 1'b1;
-              end
-	          3'h1:begin
-	                biasReg <= S_AXI_WDATA; 
-                    biasValid <= 1'b1;
-              end
-	          3'h3:
-	                layerReg <= S_AXI_WDATA;
-	          3'h4:
-	                neuronReg <= S_AXI_WDATA;
-	          3'h5:
-	                slv_reg5 <= S_AXI_WDATA;
-	          3'h6:
-	                slv_reg6 <= S_AXI_WDATA;
-	          3'h7:
-	                slv_reg7 <= S_AXI_WDATA; 
-	        endcase
-	      end
-	  end
+	if ( S_AXI_ARESETN == 1'b0 )
+		begin
+		weightReg <= 0;
+		biasReg <= 0;
+		layerReg <= 0;
+		neuronReg <= 0;
+		slv_reg7 <= 0;
+		weightValid <= 1'b0;
+		biasValid <= 1'b0;
+		end 
+	else begin
+		weightValid <= 1'b0;
+		biasValid <= 1'b0;
+		if (slv_reg_wren)
+		begin
+			case ( axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
+			3'h0:begin
+					weightReg <= S_AXI_WDATA;
+					weightValid <= 1'b1;
+			end
+			3'h1:begin
+					biasReg <= S_AXI_WDATA; 
+					biasValid <= 1'b1;
+			end
+			3'h3:
+					layerReg <= S_AXI_WDATA;
+			3'h4:
+					neuronReg <= S_AXI_WDATA;
+			3'h7:
+					controlReg <= S_AXI_WDATA;
+			endcase
+		end
+	end
 	end    
     
     always @(posedge S_AXI_ACLK)
@@ -396,8 +392,8 @@
 	        3'h3   : reg_data_out <= layerReg;
 	        3'h4   : reg_data_out <= neuronReg;
 	        3'h5   : reg_data_out <= axi_rd_data;
-	        3'h6   : reg_data_out <= slv_reg6;
-	        3'h7   : reg_data_out <= slv_reg7;
+	        3'h6   : reg_data_out <= statReg;
+	        3'h7   : reg_data_out <= controlReg;
 	        default : reg_data_out <= 0;
 	      endcase
 	end
@@ -405,13 +401,23 @@
 	
 	always @(posedge S_AXI_ACLK)
 	begin
-	   if(!axi_rd_en & axi_rvalid & S_AXI_RREADY & axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]==3'h5)
-	   begin
-	       axi_rd_en <= 1'b1;
-	   end
-	   else
-	       axi_rd_en <= 1'b0;
+	   if ( S_AXI_ARESETN == 1'b0 )
+           statReg <= 1'b0;
+	   else if(nnOut_valid)
+	       statReg <= 1'b1;
+	   else if(axi_rvalid & S_AXI_RREADY & axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]==3'h6)//read clear status reg
+	       statReg <= 1'b0;
 	end
+	
+	always @(posedge S_AXI_ACLK)
+    begin
+       if(!axi_rd_en & axi_rvalid & S_AXI_RREADY & axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]==3'h5)
+       begin
+           axi_rd_en <= 1'b1;
+       end
+       else
+           axi_rd_en <= 1'b0;
+    end
 
 	// Output register or memory read data
 	always @( posedge S_AXI_ACLK )

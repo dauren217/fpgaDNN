@@ -77,16 +77,16 @@ def gen_nn(numLayers,neuronList,dataWidth,sigmoidSize,weightIntSize,inputIntSize
 			f.write("\n")
 	
 		if i == 1: #First layer input is connected to AXI
-			f.write("Layer #(.NN(`numNeuronLayer%d),.numWeight(`numNeuronLayer%d),.dataWidth(`dataWidth),.layerNum(%d),.sigmoidSize(`sigmoidSize)) l%d(\n\t.clk(s_axi_aclk),\n\t.rst(!s_axi_aresetn),\n\t.weightValid(weightValid),\n\t.biasValid(biasValid),\n\t.weightValue(weightValue),\n\t.biasValue(biasValue),\n\t.config_layer_num(config_layer_num),\n\t.config_neuron_num(config_neuron_num),\n\t.x_valid(axis_in_data_valid),\n\t.x_in(axis_in_data),\n\t.o_valid(o%d_valid),\n\t.x_out(x%d_out)\n);\n\n"%(i,i-1,i,i,i,i))
+			f.write("Layer #(.NN(`numNeuronLayer%d),.numWeight(`numNeuronLayer%d),.dataWidth(`dataWidth),.layerNum(%d),.sigmoidSize(`sigmoidSize)) l%d(\n\t.clk(s_axi_aclk),\n\t.rst(reset),\n\t.weightValid(weightValid),\n\t.biasValid(biasValid),\n\t.weightValue(weightValue),\n\t.biasValue(biasValue),\n\t.config_layer_num(config_layer_num),\n\t.config_neuron_num(config_neuron_num),\n\t.x_valid(axis_in_data_valid),\n\t.x_in(axis_in_data),\n\t.o_valid(o%d_valid),\n\t.x_out(x%d_out)\n);\n\n"%(i,i-1,i,i,i,i))
 		else: #All other layers
-			f.write("Layer #(.NN(`numNeuronLayer%d),.numWeight(`numNeuronLayer%d),.dataWidth(`dataWidth),.layerNum(%d),.sigmoidSize(`sigmoidSize)) l%d(\n\t.clk(s_axi_aclk),\n\t.rst(!s_axi_aresetn),\n\t.weightValid(weightValid),\n\t.biasValid(biasValid),\n\t.weightValue(weightValue),\n\t.biasValue(biasValue),\n\t.config_layer_num(config_layer_num),\n\t.config_neuron_num(config_neuron_num),\n\t.x_valid(data_out_valid_%d),\n\t.x_in(out_data_%d),\n\t.o_valid(o%d_valid),\n\t.x_out(x%d_out)\n);\n\n"%(i,i-1,i,i,i-1,i-1,i,i))
+			f.write("Layer #(.NN(`numNeuronLayer%d),.numWeight(`numNeuronLayer%d),.dataWidth(`dataWidth),.layerNum(%d),.sigmoidSize(`sigmoidSize)) l%d(\n\t.clk(s_axi_aclk),\n\t.rst(reset),\n\t.weightValid(weightValid),\n\t.biasValid(biasValid),\n\t.weightValue(weightValue),\n\t.biasValue(biasValue),\n\t.config_layer_num(config_layer_num),\n\t.config_neuron_num(config_neuron_num),\n\t.x_valid(data_out_valid_%d),\n\t.x_in(out_data_%d),\n\t.o_valid(o%d_valid),\n\t.x_out(x%d_out)\n);\n\n"%(i,i-1,i,i,i-1,i-1,i,i))
 		if i < numLayers-1:
 			f.write("//State machine for data pipelining\n\n")
 			f.write("reg       state_%d;\n"%(i))
 			f.write("integer   count_%d;\n"%(i))
 			f.write("always @(posedge s_axi_aclk)\n")
 			f.write("begin\n\
-		if(!s_axi_aresetn)\n\
+		if(reset)\n\
 		begin\n\
 			state_%d <= IDLE;\n\
 			count_%d <= 0;\n\
