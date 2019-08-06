@@ -1,9 +1,9 @@
-\section{Background}
+\section{Motivation and Background}
 
 \cite{xilinxddnk}
-The code snippet below shows the implementation of a 5-layer DNN in tensor flow with 4 hidden layers with 30, 30, 10 and 10 neurons each.
-Each layer uses ReLU-based activation function and an output \emph{softmax} layer is used to determine the output neuron with maximum output value. 
-
+The code snippet below shows the implementation of a 5-layer DNN in TensorFlow with 4 hidden layers with 30, 30, 10 and 10 neurons each.
+Each layer uses ReLU-based activation function and an output \emph{softmax} layer is used to determine the output neuron with maximum value. 
+The programing model is very intuitive, flexible, scalable and programmer friendly. 
 
 \begin{python}
 import tensorflow as tf
@@ -14,11 +14,13 @@ model.add(tf.keras.layers.Dense(30,activation=tf.nn.relu))
 model.add(tf.keras.layers.Dense(10,activation=tf.nn.relu))
 model.add(tf.keras.layers.Dense(10,activation=tf.nn.relu))
 model.add(tf.keras.layers.Dense(10,activation=tf.nn.softmax))
-model.compile(optimizer='adam',
-    loss='sparse_categorical_crossentropy',
-    metrics=['accuracy'])
+model.compile(optimizer='adam',metrics=['accuracy'],
+loss='sparse_categorical_crossentropy')
 \end{python}
 
+Our aim is to develop a model, which is similar to TensorFlow but generates efficient hardware tageting FPGAs.
+The snippet below describes the same network as before, but generates Verilog RTL code, which can be synthesized and implemented using any target FPGA vendor tools.
+Since hardware implementation provides bit-level precision of data width, three additional parameters are provided with the \emph{compile} method. 
 
 \begin{python}
 import zynet as zn
@@ -32,3 +34,7 @@ model.add(zn.zynet.layer("Dense",10,"hardmax"))
 model.compile(pretrained='No',dataWidth=16,
     weightIntSize=4,inputIntSize=1)
 \end{python}
+
+The \emph{dataWidth} specifies total bit width of input data, bias and weight values. \emph{InputIntSize} and \emph{weightIntSize} specifies the number of bits used to represent the integer portion of input and weight values.
+Since ZyNet implementations use fixed point representation, these parameters are required for internal calculations.
+For \emph{pretrained} networks, where weight and bias values are available before network synthesis, these parameters can be automatically determined by the tool by analyzing the maximum and minimum values .

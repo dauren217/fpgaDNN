@@ -1,0 +1,20 @@
+\begin{table}[!h]
+  \centering
+  \caption{Important methods available in the ZyNet package} 
+  \begin{tabular}{l|l}
+      \toprule
+      \bf{Methods} & \bf{Action} \\
+      \midrule
+	zynet.model() & Creates a zynet DNN object \\
+	model.add() & Adds a new layer to the DNN \\
+	model.compile() & Generates the DNN RTL code\\
+	zynet.makeXilinxProject() & Generates a Xilinx project\\ 
+				  & with DNN as the top module\\
+	zynet.makeIP() & Packeges the DNN into IP-XACT format\\
+	zynet.makeSystem & Creates a block design with the generated \\
+			 & IP block, Zynq processor system,\\ 
+			 & DMA controller and other peripherals\\
+      \bottomrule
+    \end{tabular}
+    \label{table:apis}
+\end{table}
