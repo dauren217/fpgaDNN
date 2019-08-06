@@ -2,7 +2,15 @@
 \label{sec:intro}
 
 Advent of IoT-enabled applications have stimulated the interest for neural networks on edge computing devices.
-These are low-cost devices with limited computing and memory capabilities and require low energy footprint.
+These are low-cost devices with limited computing and memory capabilities and require a low energy footprint.
 It has been shown many a times that FPGAs can outperform software implementation of deep neural network~(DNN) as their architecture is friendly to the concurrent architecture of neural networks~\cite{Huimin2016}.
 Although FPGA-based DNNs have found their way to datacenters, they are still not popular for edge computing due to their power consumption and limited flexibility.
 Hybrid FPGA platforms such as Xilinx Zynq devices are promising in this regard as they are relatively cheaper, low power consuming and can support a hardware-software co-design approach for better flexibility.
+
+Another stumbling block for FPGA-based neural computing is the lack of programmer friendly development environment.
+Although FPGA vendors are providing AI/ML platforms~\cite{xilinxddnk}, they often require high-end devices for implementation and tool flow are challenging to follow.
+In this work we introduce ZyNet, a Python package which not only generates synthesizable DNN code, but automatically integrates it with necessary peripherals to provide a complete system solution.
+The target implementation platforms are low-cost hybrid FPGA platforms such as ZedBoard and MicroZed, but the solution can be equally extended to any other FPGA platform.
+The generated DNN RTL code are vendor agnostic and can be implemented with any logic synthesize tool.
+
+The remainder of this paper is organized as as the following, Section~\ref{sec_background} discusses the motivation and background, Section~\ref{sec_architecture} discusses the architecture of ZyNet, Section~\ref{sec_results} discusses the implementation results and Section~\ref{sec_conclusion} concludes the paper and recommends future research directions.

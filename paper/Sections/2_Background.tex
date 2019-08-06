@@ -1,6 +1,6 @@
 \section{Motivation and Background}
+\label{sec_background}
 
-\cite{xilinxddnk}
 The code snippet below shows the implementation of a 5-layer DNN in TensorFlow with 4 hidden layers with 30, 30, 10 and 10 neurons each.
 Each layer uses ReLU-based activation function and an output \emph{softmax} layer is used to determine the output neuron with maximum value. 
 The programing model is very intuitive, flexible, scalable and programmer friendly. 
@@ -37,4 +37,4 @@ model.compile(pretrained='No',dataWidth=16,
 
 The \emph{dataWidth} specifies total bit width of input data, bias and weight values. \emph{InputIntSize} and \emph{weightIntSize} specifies the number of bits used to represent the integer portion of input and weight values.
 Since ZyNet implementations use fixed point representation, these parameters are required for internal calculations.
-For \emph{pretrained} networks, where weight and bias values are available before network synthesis, these parameters can be automatically determined by the tool by analyzing the maximum and minimum values .
+For \emph{pretrained} networks, where weight and bias values are available before network synthesis, these parameters can be automatically determined by the tool by analyzing the maximum and minimum values.

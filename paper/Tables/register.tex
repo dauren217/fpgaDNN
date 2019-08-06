@@ -1,0 +1,19 @@
+\begin{table}[!h]
+  \centering
+  \caption{Register Address Map for Zynet AXI4-Lite Interface} 
+  \begin{tabular}{l|l|l}
+      \toprule
+      \bf{Offset Address} & \bf{Access} & \bf{Function} \\
+      \midrule
+	0x00 & RW & Weight Register \\
+	0x04 & RW & Bias Register \\
+	0x08 & R & Final Output Register\\
+	0x0C & W & Layer Number Register\\
+	0x10 & W & Neuron Number Register\\
+	0x14 & R & Output Neuron Register\\
+	0x18 & R & Status Register\\
+	0x1C & RW & Control Register\\
+      \bottomrule
+    \end{tabular}
+    \label{table:apis}
+\end{table}

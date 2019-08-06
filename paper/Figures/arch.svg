@@ -10,11 +10,11 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="121.22839mm"
-   height="94.581055mm"
-   viewBox="0 0 121.22839 94.581055"
+   height="69.574669mm"
+   viewBox="0 0 121.22838 69.574669"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   inkscape:version="0.92.4 (unknown)"
    sodipodi:docname="arch.svg">
   <defs
      id="defs2">
@@ -238,9 +238,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="221.74877"
-     inkscape:cy="209.94004"
+     inkscape:zoom="1.979899"
+     inkscape:cx="160.00301"
+     inkscape:cy="115.28653"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -249,16 +249,16 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:window-width="1920"
-     inkscape:window-height="1001"
-     inkscape:window-x="-9"
-     inkscape:window-y="-9"
+     inkscape:window-width="1855"
+     inkscape:window-height="1056"
+     inkscape:window-x="65"
+     inkscape:window-y="24"
      inkscape:window-maximized="1">
     <inkscape:grid
        type="xygrid"
        id="grid815"
-       originx="-40.588924"
-       originy="-122.04281" />
+       originx="-40.58892"
+       originy="-130.99634" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -276,30 +276,30 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-40.588926,-80.376127)">
+     transform="translate(-40.588926,-96.428984)">
     <rect
        style="fill:#3f3f3f;fill-opacity:0.06467662;stroke:#000000;stroke-width:0.465;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect6958"
        width="120.76339"
-       height="94.116058"
+       height="69.109673"
        x="40.821426"
-       y="80.608627"
+       y="96.661484"
        rx="0.37796673"
        ry="0.37796673" />
     <rect
        style="fill:#89c270;fill-opacity:0.59203982;stroke:#000000;stroke-width:0.26499999;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect817"
        width="84.666664"
-       height="27.781256"
+       height="21.901325"
        x="71.4375"
-       y="93.270828"
+       y="99.150757"
        rx="3.287133"
        ry="3.7149141" />
     <rect
        style="fill:#de5863;fill-opacity:0.55721388;stroke:#000000;stroke-width:0.26499999;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect819"
        width="22.636648"
-       height="22.369385"
+       height="15.754802"
        x="75.78299"
        y="142.42088"
        rx="1.897074"
@@ -318,7 +318,7 @@
        style="fill:#2c48ee;fill-opacity:0.63681593;stroke:#000000;stroke-width:0.26499999;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect819-6"
        width="36.401031"
-       height="22.369385"
+       height="16.510754"
        x="118.44102"
        y="142.42088"
        rx="1.8970739"
@@ -336,24 +336,24 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:4.23333311px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="77.70034"
-       y="155.1445"
+       x="78.002129"
+       y="151.84134"
        id="text868"><tspan
          sodipodi:role="line"
          id="tspan866"
-         x="77.70034"
-         y="155.1445"
+         x="78.002129"
+         y="151.84134"
          style="font-size:4.23333311px;stroke-width:0.26458332">AXI DMA</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:4.23333311px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="130.23883"
-       y="154.71869"
+       x="130.17784"
+       y="151.77904"
        id="text868-8"><tspan
          sodipodi:role="line"
          id="tspan866-1"
-         x="130.23883"
-         y="154.71869"
+         x="130.17784"
+         y="151.77904"
          style="font-size:4.23333311px;stroke-width:0.26458332">ZyNet</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.26499999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Arrow2Lstart)"
@@ -368,13 +368,13 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:4.23333311px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="87.828232"
-       y="108.2911"
+       x="87.910912"
+       y="111.26931"
        id="text868-8-3"><tspan
          sodipodi:role="line"
          id="tspan866-1-2"
-         x="87.828232"
-         y="108.2911"
+         x="87.910912"
+         y="111.26931"
          style="font-size:4.23333311px;stroke-width:0.26458332">Zynq Processing System</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.26499999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Arrow2Lstart-4)"
@@ -461,17 +461,17 @@
        inkscape:connector-curvature="0" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.16500002;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Arrow2Lstart-5-5)"
-       d="m 47.984603,132.28285 v 35.34994"
+       d="m 47.984125,132.23749 v 29.53667"
        id="path888-5-1"
        inkscape:connector-curvature="0" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.16499999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 135.34314,167.54131 H 47.893926"
+       d="M 135.34314,161.72044 H 47.893926"
        id="path888-5-7-0"
        inkscape:connector-curvature="0" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.16499998;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 135.25084,167.62385 v -2.86583"
+       d="m 135.25084,161.80298 v -2.86583"
        id="path888-5-7-0-8"
        inkscape:connector-curvature="0" />
     <path
@@ -553,13 +553,13 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:3.52777767px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="143.6376"
-       y="173.52361"
-       id="text868-4-6-98"><tspan
+       x="146.64673"
+       y="164.6741"
+       id="text868-4-6-98-3"><tspan
          sodipodi:role="line"
-         id="tspan866-8-7-6"
-         x="143.6376"
-         y="173.52361"
-         style="font-size:3.52777767px;stroke-width:0.26458332">Zynq SoC</tspan></text>
+         id="tspan866-8-7-6-6"
+         x="146.64673"
+         y="164.6741"
+         style="font-size:3.52777767px;stroke-width:0.26458332">Zynq PL</tspan></text>
   </g>
 </svg>
