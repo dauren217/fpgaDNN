@@ -1,0 +1,81 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{subfigure}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\usepackage{listings}
+\usepackage[utf8]{inputenc}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{8} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{8}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+\usepackage{listings}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttm,
+otherkeywords={self,add},             % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={zynet,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false            % 
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+\begin{document}
+
+\title{ZyNet: Automating Deep Neural Network Implementation on Low-cost Reconfigurable Edge Computing Platforms}
+
+\maketitle
+
+\begin{abstract}
+Prevalence of internet of things (IoT) enabled applications provide a new opportunity to low-cost FPGA devices to act as edge computing nodes. Although FPGA vendors provide development environment for FPGA-based neural networks, they often support only high-end FPGAs. At the same time these platforms are not as user friendly as their software counter parts. In this work we introduce ZyNet, a Python package, which enables faster implementation of deep neural networks targeting low-cost hybrid FPGA platforms such as the Xilinx Zynq. Based on hardware-software co-design philosophy this platform supports pre-trained or on-board trained networks with development environment very similar to the popular TensorFlow environment. Implementation results show that the platform achieves accuracy very close to software implementations at the same time gives performance improvement of several orders compared to other edge computing devices. The platform is integrated with Xilinx development tools and is distributed as open source through the Python Package Index (PyPI) and git repositories. 
+\end{abstract}
+
+\begin{IEEEkeywords}
+neural networks, hardware-software co-design, edge computing
+\end{IEEEkeywords}
+
+\input{Sections/1_Introduction}
+\input{Sections/2_Background}
+\input{Sections/3_Architecture}
+\input{Sections/4_Results}
+\input{Sections/5_Future}
+
+\bibliographystyle{IEEEtran}
+\bibliography{fpt}
+\end{document}

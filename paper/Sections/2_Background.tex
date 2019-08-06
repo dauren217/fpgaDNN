@@ -1,0 +1,34 @@
+\section{Background}
+
+\cite{xilinxddnk}
+The code snippet below shows the implementation of a 5-layer DNN in tensor flow with 4 hidden layers with 30, 30, 10 and 10 neurons each.
+Each layer uses ReLU-based activation function and an output \emph{softmax} layer is used to determine the output neuron with maximum output value. 
+
+
+\begin{python}
+import tensorflow as tf
+model = tf.keras.models.Sequential()
+model.add(tf.keras.layers.Flatten())
+model.add(tf.keras.layers.Dense(30,activation=tf.nn.relu))
+model.add(tf.keras.layers.Dense(30,activation=tf.nn.relu))
+model.add(tf.keras.layers.Dense(10,activation=tf.nn.relu))
+model.add(tf.keras.layers.Dense(10,activation=tf.nn.relu))
+model.add(tf.keras.layers.Dense(10,activation=tf.nn.softmax))
+model.compile(optimizer='adam',
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy'])
+\end{python}
+
+
+\begin{python}
+import zynet as zn
+model = zn.zynet.model()
+model.add(zn.zynet.layer("flatten",784))
+model.add(zn.zynet.layer("Dense",30,"relu"))
+model.add(zn.zynet.layer("Dense",30,"relu"))
+model.add(zn.zynet.layer("Dense",10,"relu"))
+model.add(zn.zynet.layer("Dense",10,"relu"))
+model.add(zn.zynet.layer("Dense",10,"hardmax"))
+model.compile(pretrained='No',dataWidth=16,
+    weightIntSize=4,inputIntSize=1)
+\end{python}
